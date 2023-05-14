@@ -1,0 +1,21 @@
+{
+  "status": true,
+  "message": "SUCCESS",
+  "errorcode": "",
+  "data": [
+    {
+      "tradingSymbol": "RELIANCE-EQ",
+      "exchange": "NSE",
+      "isin": "INE002A01018",
+      "t1quantity": "0",
+      "realisedquantity": "0",
+      "quantity": "0",
+      "authorisedquantity": "0",
+      "profitandloss": "0",
+      "product": "MIS",
+      "collateralquantity": "0",
+      "collateraltype": null,
+      "haircut": "0"
+    }
+  ]
+}

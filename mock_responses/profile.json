@@ -1,0 +1,26 @@
+{
+	"status": true,
+	"message": "SUCCESS",
+	"errorcode": "",
+	"data": {
+		"clientcode": "D88311",
+		"name": "SANDIP KHAIRNAR",
+		"email": "SANDIP.KHAIRNAR@ANGELBROKING.COM",
+		"mobileno": "9920292496",
+		"exchanges": [
+			"NSE",
+			"BSE",
+			"MCX",
+			"CDS",
+			"NCDEX",
+			"NFO"
+		],
+		"products": [
+			"DELIVERY",
+			"INTRADAY",
+			"MARGIN"
+		],
+		"lastlogintime": "",
+		"brokerid": "B2C"
+	}
+}

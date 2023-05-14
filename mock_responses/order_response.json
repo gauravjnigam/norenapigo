@@ -1,0 +1,9 @@
+{
+  "status": true,
+  "message": "SUCCESS",
+  "errorcode": "",
+  "data": {
+    "script": "SBIN-EQ",
+    "orderid": "201020000000080"
+  }
+}

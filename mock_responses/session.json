@@ -1,0 +1,10 @@
+{
+  "status": true,
+  "message": "SUCCESS",
+  "errorcode": "",
+  "data": {
+    "jwtToken": "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJEODgzIiwiUk9MRVMiOjAsIkFQUCI6IlVTRVIiLCJpYXQiOjE1OTk0ODkwMzksImV4cCI6MTU5OTQ5ODAzOX0.E_AK-K70tEgAZA7ddRnQPcBYQw38p4MBc57kwEpnFoNsTcmEHe3AwFblcDRVBWqTC6AGgZID7ttC1C4QfMTTEw",
+    "refreshToken": "eyJhbGciOiJIUzUxMiJ9.eyJpYXQiOjE1OTk0ODkwMzl9.3jX_LpNtQKZo_Ufpux4qxGgdBNZosEM8BqkWkBJQli_4B0FjJdRLNMueyyGl5F5qv1qv1wdK-jFRYnlr2IXktg",
+    "feedToken": "1345613428"
+  }
+}

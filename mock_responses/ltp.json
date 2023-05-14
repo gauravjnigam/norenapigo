@@ -1,0 +1,15 @@
+{
+	"status": true,
+	"message": "SUCCESS",
+	"errorcode": "",
+	"data": {
+		"exchange": "NSE",
+		"tradingsymbol": "SBIN-EQ",
+		"symboltoken":"3045",
+		"open": "18600",
+		"high": "19125",
+		"low": "18500",
+		"close": "18780",
+		"ltp": "19100"
+	}
+}

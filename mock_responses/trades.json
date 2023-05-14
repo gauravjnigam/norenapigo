@@ -1,0 +1,27 @@
+{
+  "status": true,
+  "message": "SUCCESS",
+  "errorcode": "",
+  "data": [
+    {
+      "exchange": "NSE",
+      "producttype": "DELIVERY",
+      "tradingsymbol": "ITC-EQ",
+      "instrumenttype": "",
+      "symbolgroup": "EQ",
+      "strikeprice": "-1",
+      "optiontype": "",
+      "expirydate": "",
+      "marketlot": "1",
+      "precision": "2",
+      "multiplier": "-1",
+      "tradevalue": "17500",
+      "transactiontype": "BUY",
+      "fillprice": "17500",
+      "fillsize": "1",
+      "orderid": "201020000000095",
+      "fillid": "50005750",
+      "filltime": "13:27:53"
+    }
+  ]
+}

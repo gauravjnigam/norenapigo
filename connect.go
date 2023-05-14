@@ -1,34 +1,39 @@
-package api
+package norenapigo
 
 import (
 	"crypto/tls"
+	"fmt"
+	_ "fmt"
 	"net/http"
 	"time"
 )
 
 // Client represents interface for Kite Connect client.
 type Client struct {
+	clientCode  string
 	password    string
-	twoFA       string
+	accessToken string
 	debug       bool
-	vendor_code string
-	api_secret  string
-	imei        string
+	baseURI     string
+	apiKey      string
 	httpClient  HTTPClient
 }
 
 const (
-	name           string        = "shoonyaapi-go"
+	name           string        = "shoonya-go"
 	requestTimeout time.Duration = 7000 * time.Millisecond
 	baseURI        string        = "https://api.shoonya.com/NorenWClientTP/"
-	// NorenApi.__init__(self, host='https://api.shoonya.com/NorenWClientTP/',
-	// websocket='wss://api.shoonya.com/NorenWSTP/',
-	// eodhost="https://shoonya.finvasia.com/chartApi/getdata/")
+	// websockerURI string = "wss://api.shoonya.com/NorenWSTP/"
 )
 
-// Login using shoonya API client.
-func Login(userId string, password string, twoFA string, vendor_code string, api_secret string, imei string) {
-	client := &Client{}
+// New creates a new noren API client.
+func New(clientCode string, password string, apiKey string) *Client {
+	client := &Client{
+		clientCode: clientCode,
+		password:   password,
+		apiKey:     apiKey,
+		baseURI:    baseURI,
+	}
 
 	// Create a default http handler with default timeout.
 	client.SetHTTPClient(&http.Client{
@@ -51,7 +56,7 @@ func (c *Client) SetDebug(debug bool) {
 	c.httpClient.GetClient().debug = debug
 }
 
-// SetBaseURI overrides the base Shoonya api endpoint with custom url.
+// SetBaseURI overrides the base norenAPI endpoint with custom url.
 func (c *Client) SetBaseURI(baseURI string) {
 	c.baseURI = baseURI
 }
@@ -77,24 +82,18 @@ func (c *Client) doEnvelope(method, uri string, params map[string]interface{}, h
 		headers = map[string][]string{}
 	}
 
-	localIp, publicIp, mac, err := getIpAndMac()
+	// localIp, publicIp, mac, err := getIpAndMac()
 
-	if err != nil {
-		return err
-	}
+	// if err != nil {
+	// 	return err
+	// }
 
 	// Add Kite Connect version to header
 	headers.Add("Content-Type", "application/json")
-	headers.Add("X-ClientLocalIP", localIp)
-	headers.Add("X-ClientPublicIP", publicIp)
-	headers.Add("X-MACAddress", mac)
-	headers.Add("Accept", "application/json")
-	headers.Add("X-UserType", "USER")
-	headers.Add("X-SourceID", "WEB")
-	headers.Add("X-PrivateKey", c.apiKey)
-	if authorization != nil && authorization[0] {
-		headers.Add("Authorization", "Bearer "+c.accessToken)
-	}
 
-	return c.httpClient.DoEnvelope(method, c.baseURI+uri, params, headers, v)
+	headers.Add("charset", "utf-8")
+
+	fmt.Printf("\n--> Method : %s \nURL : %s \nParam : %v\n Header : %v\n, V: %v\n AccessToken: %v\n", method, c.baseURI+uri, params, headers, v, c.accessToken)
+
+	return c.httpClient.DoEnvelope(method, c.baseURI+uri, params, headers, c.accessToken, v)
 }
