@@ -1,4 +1,4 @@
-module github.com/gauravjnigam/norenapigo
+module github.com/norenapigo/v2
 
 go 1.20
 
