@@ -3,18 +3,19 @@ package websocket
 import (
 	"bytes"
 	"compress/zlib"
-	"crypto/tls"
+	"context"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"math"
 	"net/url"
 	"sync"
 	"time"
 
 	"github.com/gorilla/websocket"
+	"github.com/norenapigo/v2"
+	models "github.com/norenapigo/v2/model"
 )
 
 type SocketClient struct {
@@ -29,6 +30,7 @@ type SocketClient struct {
 	scrips              string
 	feedToken           string
 	clientCode          string
+	cancel              context.CancelFunc
 }
 
 // callbacks represents callbacks available in ticker.
@@ -39,6 +41,8 @@ type callbacks struct {
 	onConnect     func()
 	onClose       func(int, string)
 	onError       func(error)
+	onTick        func(models.Tick)
+	onOrderUpdate func(norenapigo.Order)
 }
 
 const (
@@ -73,7 +77,7 @@ func New(clientCode string, feedToken string, scrips string) *SocketClient {
 		scrips:              scrips,
 	}
 
-	// fmt.Printf("Socket client - %v\n", sc)
+	// fmt.Printf("Socket client url - %v\n", tickerURL)
 
 	return sc
 }
@@ -115,20 +119,32 @@ func (s *SocketClient) SetReconnectMaxRetries(val int) {
 
 // OnConnect callback.
 func (s *SocketClient) OnConnect(f func()) {
-	fmt.Println("Connecting...")
+	// fmt.Println("Connecting...")
 	s.callbacks.onConnect = f
 
 }
 
 // OnError callback.
 func (s *SocketClient) OnError(f func(err error)) {
-	fmt.Println("Errored out...")
+	// fmt.Println("Errored out...")
 	s.callbacks.onError = f
+}
+
+// OnTick callback.
+func (s *SocketClient) OnTick(f func(tick models.Tick)) {
+	// fmt.Println("Errored out...")
+	s.callbacks.onTick = f
+}
+
+// OnTick callback.
+func (s *SocketClient) OnOrderUpdate(f func(order norenapigo.Order)) {
+	// fmt.Println("Errored out...")
+	s.callbacks.onOrderUpdate = f
 }
 
 // OnClose callback.
 func (s *SocketClient) OnClose(f func(code int, reason string)) {
-	fmt.Println("Closed...")
+	// fmt.Println("Closed...")
 	s.callbacks.onClose = f
 }
 
@@ -141,149 +157,122 @@ func (s *SocketClient) OnMessage(f func(message []map[string]interface{})) {
 
 // OnReconnect callback.
 func (s *SocketClient) OnReconnect(f func(attempt int, delay time.Duration)) {
-	fmt.Println("Reconnecting")
+	// fmt.Println("Reconnecting")
 	s.callbacks.onReconnect = f
 }
 
 // OnNoReconnect callback.
 func (s *SocketClient) OnNoReconnect(f func(attempt int)) {
-	fmt.Println("Not connected")
+	// fmt.Println("Not connected")
 	s.callbacks.onNoReconnect = f
 }
 
-// Serve starts the connection to ticker server. Since its blocking its recommended to use it in go routine.
+// Serve starts the connection to ticker server. Since its blocking its
+// recommended to use it in a go routine.
 func (s *SocketClient) Serve() {
-	fmt.Println("\n\n\n serving...")
+	s.ServeWithContext(context.Background())
+}
+
+// ServeWithContext starts the connection to ticker server and additionally
+// accepts a context. Since its blocking its recommended to use it in a go
+// routine.
+func (s *SocketClient) ServeWithContext(ctx context.Context) {
+	fmt.Println("\nServing...")
+	ctx, cancel := context.WithCancel(ctx)
+	s.cancel = cancel
 
 	for {
-		fmt.Println("--> ")
-		// If reconnect attempt exceeds max then close the loop
-		if s.reconnectAttempt > s.reconnectMaxRetries {
-			s.triggerNoReconnect(s.reconnectAttempt)
+		// fmt.Println("--> ")
+		select {
+		case <-ctx.Done():
 			return
-		}
-		// If its a reconnect then wait exponentially based on reconnect attempt
-		if s.reconnectAttempt > 0 {
-			nextDelay := time.Duration(math.Pow(2, float64(s.reconnectAttempt))) * time.Second
-			if nextDelay > s.reconnectMaxDelay {
-				nextDelay = s.reconnectMaxDelay
-			}
-
-			s.triggerReconnect(s.reconnectAttempt, nextDelay)
-
-			// Close the previous connection if exists
-			if s.Conn != nil {
-				s.Conn.Close()
-			}
-		}
-		// create a dialer
-		d := websocket.DefaultDialer
-		d.HandshakeTimeout = s.connectTimeout
-		d.TLSClientConfig = &tls.Config{
-			InsecureSkipVerify: true,
-		}
-		fmt.Println("--> " + s.url.String())
-		conn, _, err := d.Dial(s.url.String(), nil)
-		// fmt.Printf("Resp : %v", resp)
-		if err != nil {
-			s.triggerError(err)
-			// If auto reconnect is enabled then try reconneting else return error
-			if s.autoReconnect {
-				s.reconnectAttempt++
-				continue
-			}
-			return
-		}
-		// fmt.Printf("Tick : %v\n", websocket.)
-		params := map[string]interface{}{}
-		params["t"] = "c"
-		params["k"] = "NSE|26009"
-		params["uid"] = s.clientCode
-		params["actid"] = s.clientCode
-		params["susertoken"] = s.feedToken
-		params["source"] = "API"
-		jsonPayload, err := json.Marshal(params)
-		if err != nil {
-			log.Println("Error marshaling JSON:", err)
-			return
-		}
-		err = conn.WriteMessage(websocket.TextMessage, jsonPayload)
-		if err != nil {
-			fmt.Printf("Error aa gaya : %v\n", err)
-			s.triggerError(err)
-			return
-		}
-		fmt.Println("Error ni aaya")
-		_, message, err := conn.ReadMessage()
-		if err != nil {
-			s.triggerError(err)
-			return
-		}
-
-		sDec, _ := base64.StdEncoding.DecodeString(string(message))
-		val, err := readSegment(sDec)
-		var result []map[string]interface{}
-		err = json.Unmarshal(val, &result)
-		fmt.Printf("Tick : %v\n", string(message))
-		fmt.Printf("val : %v\n", val)
-		fmt.Printf("Result : %v\n", result)
-
-		if err != nil {
-			s.triggerError(err)
-			return
-		}
-		fmt.Printf("Message : %v\n", result)
-		if len(result) == 0 {
-			s.triggerError(fmt.Errorf("Invalid Message"))
-			return
-		}
-
-		if _, ok := result[0]["ak"]; !ok {
-			s.triggerError(fmt.Errorf("Invalid Message"))
-			return
-		}
-
-		if val, ok := result[0]["ak"]; ok {
-			if val == "nk" {
-				s.triggerError(fmt.Errorf("Invalid feed token or client code"))
+		default:
+			// If reconnect attempt exceeds max then close the loop
+			if s.reconnectAttempt > s.reconnectMaxRetries {
+				s.triggerNoReconnect(s.reconnectAttempt)
 				return
 			}
-		}
+			// If its a reconnect then wait exponentially based on reconnect attempt
+			if s.reconnectAttempt > 0 {
+				nextDelay := time.Duration(math.Pow(2, float64(s.reconnectAttempt))) * time.Second
+				if nextDelay > s.reconnectMaxDelay {
+					nextDelay = s.reconnectMaxDelay
+				}
 
-		// Close the connection when its done.
-		defer s.Conn.Close()
+				s.triggerReconnect(s.reconnectAttempt, nextDelay)
 
-		// Assign the current connection to the instance.
-		s.Conn = conn
+				// Close the previous connection if exists
+				if s.Conn != nil {
+					s.Conn.Close()
+				}
+			}
 
-		// Trigger connect callback.
-		s.triggerConnect()
+			q := s.url.Query()
+			q.Set("t", "c")
+			q.Set("actid", s.clientCode)
+			q.Set("uid", s.clientCode)
+			q.Set("access_token", s.feedToken)
+			q.Set("source", "API")
 
-		// Resubscribe to stored tokens
-		if s.reconnectAttempt > 0 {
-			_ = s.Resubscribe()
-		}
+			s.url.RawQuery = q.Encode()
+			// create a dialer
+			d := websocket.DefaultDialer
+			d.HandshakeTimeout = s.connectTimeout
+			// d.TLSClientConfig = &tls.Config{
+			// 	InsecureSkipVerify: true,
+			// }
+			fmt.Printf("URL --> %v\n", s.url)
 
-		// Reset auto reconnect vars
-		s.reconnectAttempt = 0
+			conn, _, err := d.Dial(s.url.String(), nil)
+			// fmt.Printf("\nResp : %v\n", resp)
+			// fmt.Printf("\nConn : %v\n", conn)
+			if err != nil {
+				s.triggerError(err)
+				// If auto reconnect is enabled then try reconneting else return error
+				if s.autoReconnect {
+					s.reconnectAttempt++
+					continue
+				}
+				return
+			}
 
-		// Set on close handler
-		s.Conn.SetCloseHandler(s.handleClose)
+			fmt.Printf("Dialed ... \n")
+			// Close the connection when its done.
+			defer s.Conn.Close()
 
-		var wg sync.WaitGroup
-		Restart := make(chan bool, 1)
-		// Receive ticker data in a go routine.
-		wg.Add(1)
-		go s.readMessage(&wg, Restart)
+			// Assign the current connection to the instance.
+			s.Conn = conn
 
-		// Run watcher to check last ping time and reconnect if required
-		if s.autoReconnect {
+			// Trigger connect callback.
+			s.triggerConnect()
+
+			// Resubscribe to stored tokens
+			if s.reconnectAttempt > 0 {
+				fmt.Printf("Reconnecting ... \n")
+				_ = s.Resubscribe()
+			}
+
+			// Reset auto reconnect vars
+			s.reconnectAttempt = 0
+
+			// Set on close handler
+			s.Conn.SetCloseHandler(s.handleClose)
+			fmt.Printf("Waiting for message ... \n")
+			var wg sync.WaitGroup
+			Restart := make(chan bool, 1)
+			// Receive ticker data in a go routine.
 			wg.Add(1)
-			go s.checkConnection(&wg, Restart)
-		}
+			go s.readMessage(ctx, &wg, Restart)
 
-		// Wait for go routines to finish before doing next reconnect
-		wg.Wait()
+			// Run watcher to check last ping time and reconnect if required
+			if s.autoReconnect {
+				wg.Add(1)
+				go s.checkConnection(&wg, Restart)
+			}
+
+			// Wait for go routines to finish before doing next reconnect
+			wg.Wait()
+		}
 	}
 }
 
@@ -339,63 +328,124 @@ func (s *SocketClient) checkConnection(wg *sync.WaitGroup, Restart chan bool) {
 }
 
 // readMessage reads the data in a loop.
-func (s *SocketClient) readMessage(wg *sync.WaitGroup, Restart chan bool) {
+func (s *SocketClient) readMessage(ctx context.Context, wg *sync.WaitGroup, Restart chan bool) {
 	defer wg.Done()
 	for {
-		fmt.Println("Msg aaya ")
-		_, msg, err := s.Conn.ReadMessage()
-		if err != nil {
-			s.triggerError(fmt.Errorf("Error reading data: %v", err))
-			Restart <- true
+		select {
+		case <-ctx.Done():
 			return
-		}
-		fmt.Println("Msg : " + string(msg))
-		sDec, _ := base64.StdEncoding.DecodeString(string(msg))
-		val, err := readSegment(sDec)
-		if err != nil {
-			s.triggerError(err)
-			return
-		}
-
-		var finalMessage []map[string]interface{}
-		err = json.Unmarshal(val, &finalMessage)
-		if err != nil {
-			s.triggerError(err)
-			return
-		}
-
-		if len(finalMessage) == 0 {
-			continue
-		}
-
-		if val, ok := finalMessage[0]["ak"]; ok {
-			if val == "nk" {
-				s.triggerError(fmt.Errorf("Invalid feed token or client code"))
+		default:
+			// fmt.Println("Msg ekde ")
+			mType, msg, err := s.Conn.ReadMessage()
+			fmt.Println("Msg read bhayo re ")
+			if err != nil {
+				s.triggerError(fmt.Errorf("Error reading data: %v", err))
+				Restart <- true
+				return
 			}
-			continue
+			fmt.Println("Msg : " + string(msg))
+			if mType == websocket.BinaryMessage {
+				fmt.Printf("MsgType : %v\n", mType)
+			} else {
+				fmt.Printf("MsgType : %v\n", mType)
+			}
+
+			sDec, _ := base64.StdEncoding.DecodeString(string(msg))
+			fmt.Printf("Msg : %v\n", string(msg))
+			fmt.Printf("sDec : %v\n", sDec)
+			val, err := readSegment(sDec)
+			if err != nil {
+				s.triggerError(err)
+				return
+			}
+			fmt.Println("3")
+			var finalMessage []map[string]interface{}
+			err = json.Unmarshal(val, &finalMessage)
+			if err != nil {
+				s.triggerError(err)
+				return
+			}
+			fmt.Println("4")
+			if len(finalMessage) == 0 {
+				continue
+			}
+
+			if val, ok := finalMessage[0]["ak"]; ok {
+				if val == "nk" {
+					s.triggerError(fmt.Errorf("Invalid feed token or client code"))
+				}
+				continue
+			}
+
+			// Trigger message.
+			s.triggerMessage(finalMessage)
 		}
-
-		// Trigger message.
-		s.triggerMessage(finalMessage)
-
 	}
 }
+
+// func (t *SocketClient) processTextMessage(inp []byte) {
+// 	var msg message
+// 	if err := json.Unmarshal(inp, &msg); err != nil {
+// 		// May be error should be triggered
+// 		return
+// 	}
+
+// 	if msg.Type == messageError {
+// 		// Trigger text error
+// 		t.triggerError(fmt.Errorf(msg.Data.(string)))
+// 	} else if msg.Type == messageOrder {
+// 		// Parse order update data
+// 		order := struct {
+// 			Data norenapigo.Order `json:"data"`
+// 		}{}
+
+// 		if err := json.Unmarshal(inp, &order); err != nil {
+// 			// May be error should be triggered
+// 			return
+// 		}
+
+// 		t.triggerOrderUpdate(order.Data)
+// 	}
+// }
 
 // Close tries to close the connection gracefully. If the server doesn't close it
 func (s *SocketClient) Close() error {
 	return s.Conn.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, ""))
 }
 
+type tickerInput struct {
+	Type string `json:"t"`
+	Val  string `json:"k"`
+}
+
+type orderInput struct {
+	Type string      `json:"t"`
+	Val  interface{} `json:"accid"`
+}
+
 // Subscribe subscribes tick for the given list of tokens.
 func (s *SocketClient) Subscribe() error {
 	fmt.Println("Subscribing... ")
-	err := s.Conn.WriteMessage(websocket.TextMessage, []byte(`{"task":"mw","channel":"`+s.scrips+`","token":"`+s.feedToken+`","user": "`+s.clientCode+`","acctid":"`+s.clientCode+`"}`))
+
+	out, err := json.Marshal(orderInput{
+		Type: "o",
+		Val:  s.clientCode, //"NSE|20009",
+	})
 	if err != nil {
-		s.triggerError(err)
 		return err
 	}
 
-	return nil
+	fmt.Printf("Payload : %v\n", string(out))
+	// return s.Conn.WriteJSON(out)
+	s.Conn.NextWriter(1)
+	return s.Conn.WriteMessage(websocket.TextMessage, out)
+	// if err != nil {
+	// 	fmt.Printf("Error aa gaya : %v\n", err)
+	// 	s.triggerError(err)
+	// 	// return
+	// }
+
+	// return nil
 }
 
 func (s *SocketClient) Resubscribe() error {

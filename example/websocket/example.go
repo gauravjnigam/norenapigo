@@ -5,15 +5,27 @@ import (
 	"time"
 
 	"github.com/diebietse/gotp/v2"
+	"github.com/norenapigo/v2"
 	NorenApi "github.com/norenapigo/v2"
+	models "github.com/norenapigo/v2/model"
 	"github.com/norenapigo/v2/websocket"
 )
 
 var socketClient *websocket.SocketClient
 
+// Triggered when tick is recevived
+func onTick(tick models.Tick) {
+	fmt.Println("Tick: ", tick)
+}
+
+// Triggered when order update is received
+func onOrderUpdate(order norenapigo.Order) {
+	fmt.Printf("Order: %s", order.OrderID)
+}
+
 // Triggered when any error is raised
 func onError(err error) {
-	fmt.Println("Error: ", err)
+	fmt.Println("Error aayo re: ", err)
 }
 
 // Triggered when websocket connection is closed
@@ -24,6 +36,7 @@ func onClose(code int, reason string) {
 // Triggered when connection is established and ready to send and accept data
 func onConnect() {
 	fmt.Println("Connected")
+	// fmt.Printf("SocketClient : %v\n", socketClient)
 	err := socketClient.Subscribe()
 	if err != nil {
 		fmt.Println("err: ", err)
@@ -45,12 +58,14 @@ func onNoReconnect(attempt int) {
 	fmt.Printf("Maximum no of reconnect attempt reached: %d\n", attempt)
 }
 
+// var wg sync.WaitGroup
+
 func main() {
 
 	// Create New Angel Broking Client
 	ABClient := NorenApi.New("FA87226", "AlgoBaba@23", "aa4cff2b3742cc0eeeea60d51e311722")
 
-	fmt.Println("Client :- ", ABClient)
+	// fmt.Println("Client :- ", ABClient)
 	clientTotpSecret := "U6CFCE65M63MLV655H25D2327HU36YYJ"
 	secret, err := gotp.DecodeBase32(clientTotpSecret)
 	if err != nil {
@@ -68,8 +83,8 @@ func main() {
 
 	// User Login and Generate User Session
 	session, err := ABClient.GenerateSession(currentOTP)
-	fmt.Printf("WS : Session : %v\n", session)
-	fmt.Printf("WS : Token : %v\n", session.Susertoken)
+	// fmt.Printf("WS : Session : %v\n", session)
+	// fmt.Printf("WS : Token : %v\n", session.Susertoken)
 	if err != nil {
 		fmt.Printf("Error : %v", err)
 		return
@@ -87,8 +102,14 @@ func main() {
 	socketClient.OnConnect(onConnect)
 	socketClient.OnReconnect(onReconnect)
 	socketClient.OnNoReconnect(onNoReconnect)
+	socketClient.OnTick(onTick)
+	socketClient.OnOrderUpdate(onOrderUpdate)
 
 	// Start Consuming Data
+	// wg.Add(1)
+	// fmt.Printf("SocketClient1 : %v\n", socketClient)
 	socketClient.Serve()
+	// wg.Wait()
+	// fmt.Println("Done")
 
 }

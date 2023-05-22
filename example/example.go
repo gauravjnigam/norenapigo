@@ -70,7 +70,7 @@ func main() {
 	fmt.Println("Last Traded Price :- ", ltp)
 
 	//Get Last Traded Price
-	canldels, err := ABClient.GetTimePriceSeries(NorenApi.TSPriceParam{Exch: "NSE", Token: "Nifty Bank", St: "1683744945", Et: "1684018222", Intrv: "5"})
+	canldels, err := ABClient.GetTimePriceSeries(NorenApi.TSPriceParam{Exch: "NSE", Token: "Nifty Bank", St: "1683744945", Et: "1684018222", Intrv: "15"})
 
 	if err != nil {
 		fmt.Println(err.Error())

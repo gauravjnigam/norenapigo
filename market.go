@@ -1,7 +1,6 @@
 package norenapigo
 
 import (
-	"fmt"
 	"net/http"
 )
 
@@ -62,9 +61,9 @@ func (c *Client) GetLTP(ltpParams LTPParams) (LTPResponse, error) {
 
 func (c *Client) GetTimePriceSeries(tsPriceParam TSPriceParam) (TSPResponse, error) {
 	var tsResponse TSPResponse
-	fmt.Printf("TSP Param: \n%v\n", tsPriceParam)
+	// fmt.Printf("TSP Param: \n%v\n", tsPriceParam)
 	params := structToMap(tsPriceParam, "json")
-	fmt.Printf("Req Param : \n%v\n", params)
+	// fmt.Printf("Req Param : \n%v\n", params)
 	params["uid"] = c.clientCode
 	err := c.doEnvelope(http.MethodPost, URITPSeries, params, nil, &tsResponse, true)
 	return tsResponse, err

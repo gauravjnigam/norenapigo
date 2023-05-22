@@ -59,8 +59,8 @@ func (c *Client) GenerateSession(totp string) (UserSession, error) {
 	params["vc"] = "FA87226_U"
 	params["appkey"] = hashAppKeyString
 
-	url := c.baseURI + URILogin
-	fmt.Printf("URL - %s \nParam : %v", url, params)
+	// url := c.baseURI + URILogin
+	// fmt.Printf("URL - %s \nParam : %v", url, params)
 	var session UserSession
 	err := c.doEnvelope(http.MethodPost, URILogin, params, nil, &session)
 	// Set accessToken on successful session retrieve
