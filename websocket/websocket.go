@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"compress/zlib"
 	"context"
-	"encoding/base64"
+	"crypto/tls"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -35,7 +35,7 @@ type SocketClient struct {
 
 // callbacks represents callbacks available in ticker.
 type callbacks struct {
-	onMessage     func([]map[string]interface{})
+	onMessage     func([]byte)
 	onNoReconnect func(int)
 	onReconnect   func(int, time.Duration)
 	onConnect     func()
@@ -149,8 +149,8 @@ func (s *SocketClient) OnClose(f func(code int, reason string)) {
 }
 
 // OnMessage callback.
-func (s *SocketClient) OnMessage(f func(message []map[string]interface{})) {
-	fmt.Println("OnMessage...")
+func (s *SocketClient) OnMessage(f func(message []byte)) {
+	// fmt.Println("OnMessage...")
 	s.callbacks.onMessage = f
 
 }
@@ -182,7 +182,7 @@ func (s *SocketClient) ServeWithContext(ctx context.Context) {
 	s.cancel = cancel
 
 	for {
-		// fmt.Println("--> ")
+
 		select {
 		case <-ctx.Done():
 			return
@@ -207,25 +207,13 @@ func (s *SocketClient) ServeWithContext(ctx context.Context) {
 				}
 			}
 
-			q := s.url.Query()
-			q.Set("t", "c")
-			q.Set("actid", s.clientCode)
-			q.Set("uid", s.clientCode)
-			q.Set("access_token", s.feedToken)
-			q.Set("source", "API")
-
-			s.url.RawQuery = q.Encode()
-			// create a dialer
 			d := websocket.DefaultDialer
 			d.HandshakeTimeout = s.connectTimeout
-			// d.TLSClientConfig = &tls.Config{
-			// 	InsecureSkipVerify: true,
-			// }
-			fmt.Printf("URL --> %v\n", s.url)
-
+			d.TLSClientConfig = &tls.Config{
+				InsecureSkipVerify: true,
+			}
 			conn, _, err := d.Dial(s.url.String(), nil)
-			// fmt.Printf("\nResp : %v\n", resp)
-			// fmt.Printf("\nConn : %v\n", conn)
+
 			if err != nil {
 				s.triggerError(err)
 				// If auto reconnect is enabled then try reconneting else return error
@@ -236,10 +224,40 @@ func (s *SocketClient) ServeWithContext(ctx context.Context) {
 				return
 			}
 
-			fmt.Printf("Dialed ... \n")
+			// fmt.Printf("Dialed ... \n")
+			// q.Set("t", "c")
+			// q.Set("actid", s.clientCode)
+			// q.Set("uid", s.clientCode)
+			// q.Set("access_token", s.feedToken)
+			// q.Set("source", "API")
+
+			out, err := json.Marshal(WebsocketRequest{
+				Type:       "c",
+				UserId:     s.clientCode,
+				AccountId:  s.clientCode,
+				SuserToken: s.feedToken,
+				Source:     "API",
+			})
+			if err != nil {
+				fmt.Printf("Error : %v\n", err)
+				s.triggerError(err)
+			}
+
+			err = conn.WriteMessage(websocket.TextMessage, out)
+
+			if err != nil {
+				s.triggerError(err)
+				return
+			}
+
+			_, message, err := conn.ReadMessage()
+			fmt.Printf("Resp Msg : %v\n", string(message))
+			if err != nil {
+				s.triggerError(err)
+				return
+			}
 			// Close the connection when its done.
 			defer s.Conn.Close()
-
 			// Assign the current connection to the instance.
 			s.Conn = conn
 
@@ -257,7 +275,7 @@ func (s *SocketClient) ServeWithContext(ctx context.Context) {
 
 			// Set on close handler
 			s.Conn.SetCloseHandler(s.handleClose)
-			fmt.Printf("Waiting for message ... \n")
+			// fmt.Printf("Waiting for message ... \n")
 			var wg sync.WaitGroup
 			Restart := make(chan bool, 1)
 			// Receive ticker data in a go routine.
@@ -312,7 +330,7 @@ func (s *SocketClient) triggerNoReconnect(attempt int) {
 	}
 }
 
-func (s *SocketClient) triggerMessage(message []map[string]interface{}) {
+func (s *SocketClient) triggerMessage(message []byte) {
 	if s.callbacks.onMessage != nil {
 		s.callbacks.onMessage(message)
 	}
@@ -335,50 +353,20 @@ func (s *SocketClient) readMessage(ctx context.Context, wg *sync.WaitGroup, Rest
 		case <-ctx.Done():
 			return
 		default:
-			// fmt.Println("Msg ekde ")
 			mType, msg, err := s.Conn.ReadMessage()
-			fmt.Println("Msg read bhayo re ")
 			if err != nil {
 				s.triggerError(fmt.Errorf("Error reading data: %v", err))
 				Restart <- true
 				return
 			}
-			fmt.Println("Msg : " + string(msg))
 			if mType == websocket.BinaryMessage {
-				fmt.Printf("MsgType : %v\n", mType)
+				fmt.Printf("Processing Binary Msg : %v\n", mType)
 			} else {
-				fmt.Printf("MsgType : %v\n", mType)
-			}
-
-			sDec, _ := base64.StdEncoding.DecodeString(string(msg))
-			fmt.Printf("Msg : %v\n", string(msg))
-			fmt.Printf("sDec : %v\n", sDec)
-			val, err := readSegment(sDec)
-			if err != nil {
-				s.triggerError(err)
-				return
-			}
-			fmt.Println("3")
-			var finalMessage []map[string]interface{}
-			err = json.Unmarshal(val, &finalMessage)
-			if err != nil {
-				s.triggerError(err)
-				return
-			}
-			fmt.Println("4")
-			if len(finalMessage) == 0 {
-				continue
-			}
-
-			if val, ok := finalMessage[0]["ak"]; ok {
-				if val == "nk" {
-					s.triggerError(fmt.Errorf("Invalid feed token or client code"))
-				}
-				continue
+				fmt.Println("Processing Text Msg")
 			}
 
 			// Trigger message.
-			s.triggerMessage(finalMessage)
+			s.triggerMessage(msg)
 		}
 	}
 }
@@ -418,6 +406,14 @@ type tickerInput struct {
 	Val  string `json:"k"`
 }
 
+type WebsocketRequest struct {
+	Type       string `json:"t"`
+	UserId     string `json:"uid"`
+	AccountId  string `json:"actid"`
+	SuserToken string `json:"susertoken"`
+	Source     string `json:"source"`
+}
+
 type orderInput struct {
 	Type string      `json:"t"`
 	Val  interface{} `json:"accid"`
@@ -427,25 +423,22 @@ type orderInput struct {
 func (s *SocketClient) Subscribe() error {
 	fmt.Println("Subscribing... ")
 
-	out, err := json.Marshal(orderInput{
-		Type: "o",
-		Val:  s.clientCode, //"NSE|20009",
+	out, err := json.Marshal(tickerInput{
+		Type: "t",
+		Val:  s.scrips,
 	})
 	if err != nil {
 		return err
 	}
 
-	fmt.Printf("Payload : %v\n", string(out))
-	// return s.Conn.WriteJSON(out)
-	s.Conn.NextWriter(1)
-	return s.Conn.WriteMessage(websocket.TextMessage, out)
-	// if err != nil {
-	// 	fmt.Printf("Error aa gaya : %v\n", err)
-	// 	s.triggerError(err)
-	// 	// return
-	// }
+	err = s.Conn.WriteMessage(websocket.TextMessage, out)
 
-	// return nil
+	if err != nil {
+		s.triggerError(err)
+		// return
+	}
+
+	return nil
 }
 
 func (s *SocketClient) Resubscribe() error {

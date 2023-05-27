@@ -44,8 +44,8 @@ func onConnect() {
 }
 
 // Triggered when a message is received
-func onMessage(message []map[string]interface{}) {
-	fmt.Printf("Message Received :- %v\n", message)
+func onMessage(message []byte) {
+	fmt.Printf("Message Received :- %v\n", string(message))
 }
 
 // Triggered when reconnection is attempted which is enabled by default
@@ -84,7 +84,7 @@ func main() {
 	// User Login and Generate User Session
 	session, err := ABClient.GenerateSession(currentOTP)
 	// fmt.Printf("WS : Session : %v\n", session)
-	// fmt.Printf("WS : Token : %v\n", session.Susertoken)
+	fmt.Printf("WS : Token : %v\n", session.Susertoken)
 	if err != nil {
 		fmt.Printf("Error : %v", err)
 		return
@@ -93,7 +93,7 @@ func main() {
 
 	// time.Sleep(1 * time.Second)
 	// New Websocket Client
-	socketClient = websocket.New(session.UID, session.Susertoken, "NSE|26009")
+	socketClient = websocket.New(session.UID, session.Susertoken, "NSE|26009#NSE|22")
 
 	// Assign callbacks
 	socketClient.OnError(onError)
