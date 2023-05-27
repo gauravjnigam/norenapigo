@@ -29,8 +29,45 @@ type Time struct {
 	time.Time
 }
 
-// Tick represents a single packet in the market feed.
 type Tick struct {
+	Type          string `json:"t"`
+	Exch          string `json:"e"`
+	Token         string `json:"tk"`
+	TradingSymbol string `json:"ts"`
+	Pp            string `json:"pp"`
+	Ls            string `json:"ls"`
+	Ti            string `json:"ti"`
+	LatestPrice   string `json:"lp"`
+	Pc            string `json:"pc"`
+	Open          string `json:"o"`
+	High          string `json:"h"`
+	Low           string `json:"l"`
+	Close         string `json:"c"`
+}
+
+type OrderTick struct {
+	Type       string `json:"t"`
+	Norenordno string `json:"norenordno"`
+	UID        string `json:"uid"`
+	Actid      string `json:"actid"`
+	Exch       string `json:"exch"`
+	Tsym       string `json:"tsym"`
+	Trantype   string `json:"trantype"`
+	Qty        string `json:"qty"`
+	Prc        string `json:"prc"`
+	Pcode      string `json:"pcode"`
+	Remarks    string `json:"remarks"`
+	Status     string `json:"status"`
+	Reporttype string `json:"reporttype"`
+	Prctyp     string `json:"prctyp"`
+	Ret        string `json:"ret"`
+	Exchordid  string `json:"exchordid"`
+	Dscqty     string `json:"dscqty"`
+	Rejreason  string `json:"rejreason"`
+}
+
+// Tick represents a single packet in the market feed.
+type Tick1 struct {
 	Mode            string
 	InstrumentToken uint32
 	IsTradable      bool

@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/diebietse/gotp/v2"
-	"github.com/norenapigo/v2"
 	NorenApi "github.com/norenapigo/v2"
 	models "github.com/norenapigo/v2/model"
 	"github.com/norenapigo/v2/websocket"
@@ -19,8 +18,8 @@ func onTick(tick models.Tick) {
 }
 
 // Triggered when order update is received
-func onOrderUpdate(order norenapigo.Order) {
-	fmt.Printf("Order: %s", order.OrderID)
+func onOrderUpdate(orderTick models.OrderTick) {
+	fmt.Printf("Order: %v\n", orderTick)
 }
 
 // Triggered when any error is raised
@@ -45,7 +44,7 @@ func onConnect() {
 
 // Triggered when a message is received
 func onMessage(message []byte) {
-	fmt.Printf("Message Received :- %v\n", string(message))
+	// fmt.Printf("Message Received :- %v\n", string(message))
 }
 
 // Triggered when reconnection is attempted which is enabled by default
@@ -63,9 +62,9 @@ func onNoReconnect(attempt int) {
 func main() {
 
 	// Create New Angel Broking Client
-	ABClient := NorenApi.New("FA87226", "AlgoBaba@23", "aa4cff2b3742cc0eeeea60d51e311722")
+	NorenClient := NorenApi.New("FA87226", "AlgoBaba@23", "aa4cff2b3742cc0eeeea60d51e311722")
 
-	// fmt.Println("Client :- ", ABClient)
+	// fmt.Println("Client :- ", NorenClient)
 	clientTotpSecret := "U6CFCE65M63MLV655H25D2327HU36YYJ"
 	secret, err := gotp.DecodeBase32(clientTotpSecret)
 	if err != nil {
@@ -82,7 +81,7 @@ func main() {
 	// fmt.Printf("current one-time password is: %v\n", currentOTP)
 
 	// User Login and Generate User Session
-	session, err := ABClient.GenerateSession(currentOTP)
+	session, err := NorenClient.GenerateSession(currentOTP)
 	// fmt.Printf("WS : Session : %v\n", session)
 	fmt.Printf("WS : Token : %v\n", session.Susertoken)
 	if err != nil {

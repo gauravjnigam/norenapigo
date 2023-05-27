@@ -14,7 +14,6 @@ import (
 	"time"
 
 	"github.com/gorilla/websocket"
-	"github.com/norenapigo/v2"
 	models "github.com/norenapigo/v2/model"
 )
 
@@ -27,9 +26,9 @@ type SocketClient struct {
 	reconnectMaxDelay   time.Duration
 	connectTimeout      time.Duration
 	reconnectAttempt    int
-	scrips              string
-	feedToken           string
-	clientCode          string
+	instrument          string
+	suserToken          string
+	userId              string
 	cancel              context.CancelFunc
 }
 
@@ -42,7 +41,7 @@ type callbacks struct {
 	onClose       func(int, string)
 	onError       func(error)
 	onTick        func(models.Tick)
-	onOrderUpdate func(norenapigo.Order)
+	onOrderUpdate func(models.OrderTick)
 }
 
 const (
@@ -65,16 +64,16 @@ var (
 )
 
 // New creates a new ticker instance.
-func New(clientCode string, feedToken string, scrips string) *SocketClient {
+func New(userId string, suserToken string, instrument string) *SocketClient {
 	sc := &SocketClient{
-		clientCode:          clientCode,
-		feedToken:           feedToken,
+		userId:              userId,
+		suserToken:          suserToken,
 		url:                 tickerURL,
 		autoReconnect:       true,
 		reconnectMaxDelay:   defaultReconnectMaxDelay,
 		reconnectMaxRetries: defaultReconnectMaxAttempts,
 		connectTimeout:      defaultConnectTimeout,
-		scrips:              scrips,
+		instrument:          instrument,
 	}
 
 	// fmt.Printf("Socket client url - %v\n", tickerURL)
@@ -88,8 +87,8 @@ func (s *SocketClient) SetRootURL(u url.URL) {
 }
 
 // SetAccessToken set access token.
-func (s *SocketClient) SetFeedToken(feedToken string) {
-	s.feedToken = feedToken
+func (s *SocketClient) SetSUserToken(suserToken string) {
+	s.suserToken = suserToken
 }
 
 // SetConnectTimeout sets default timeout for initial connect handshake
@@ -136,8 +135,8 @@ func (s *SocketClient) OnTick(f func(tick models.Tick)) {
 	s.callbacks.onTick = f
 }
 
-// OnTick callback.
-func (s *SocketClient) OnOrderUpdate(f func(order norenapigo.Order)) {
+// OnOrderUpdate callback.
+func (s *SocketClient) OnOrderUpdate(f func(order models.OrderTick)) {
 	// fmt.Println("Errored out...")
 	s.callbacks.onOrderUpdate = f
 }
@@ -177,7 +176,6 @@ func (s *SocketClient) Serve() {
 // accepts a context. Since its blocking its recommended to use it in a go
 // routine.
 func (s *SocketClient) ServeWithContext(ctx context.Context) {
-	fmt.Println("\nServing...")
 	ctx, cancel := context.WithCancel(ctx)
 	s.cancel = cancel
 
@@ -224,18 +222,11 @@ func (s *SocketClient) ServeWithContext(ctx context.Context) {
 				return
 			}
 
-			// fmt.Printf("Dialed ... \n")
-			// q.Set("t", "c")
-			// q.Set("actid", s.clientCode)
-			// q.Set("uid", s.clientCode)
-			// q.Set("access_token", s.feedToken)
-			// q.Set("source", "API")
-
 			out, err := json.Marshal(WebsocketRequest{
 				Type:       "c",
-				UserId:     s.clientCode,
-				AccountId:  s.clientCode,
-				SuserToken: s.feedToken,
+				UserId:     s.userId,
+				AccountId:  s.userId,
+				SuserToken: s.suserToken,
 				Source:     "API",
 			})
 			if err != nil {
@@ -360,9 +351,10 @@ func (s *SocketClient) readMessage(ctx context.Context, wg *sync.WaitGroup, Rest
 				return
 			}
 			if mType == websocket.BinaryMessage {
-				fmt.Printf("Processing Binary Msg : %v\n", mType)
+				// fmt.Printf("Processing Binary Msg : %v\n", mType)
 			} else {
-				fmt.Println("Processing Text Msg")
+				// fmt.Println("Processing Text Msg")
+				s.processTextMessage(msg)
 			}
 
 			// Trigger message.
@@ -371,30 +363,38 @@ func (s *SocketClient) readMessage(ctx context.Context, wg *sync.WaitGroup, Rest
 	}
 }
 
-// func (t *SocketClient) processTextMessage(inp []byte) {
-// 	var msg message
-// 	if err := json.Unmarshal(inp, &msg); err != nil {
-// 		// May be error should be triggered
-// 		return
-// 	}
+func (s *SocketClient) processTextMessage(inp []byte) {
 
-// 	if msg.Type == messageError {
-// 		// Trigger text error
-// 		t.triggerError(fmt.Errorf(msg.Data.(string)))
-// 	} else if msg.Type == messageOrder {
-// 		// Parse order update data
-// 		order := struct {
-// 			Data norenapigo.Order `json:"data"`
-// 		}{}
+	msg := map[string]string{}
+	// var msg message
+	if err := json.Unmarshal(inp, &msg); err != nil {
+		// May be error should be triggered
+		return
+	}
 
-// 		if err := json.Unmarshal(inp, &order); err != nil {
-// 			// May be error should be triggered
-// 			return
-// 		}
+	if msg["t"] == "tk" || msg["t"] == "tf" {
+		var tick models.Tick
+		if err := json.Unmarshal(inp, &tick); err != nil {
+			// May be error should be triggered
+			return
+		}
 
-// 		t.triggerOrderUpdate(order.Data)
-// 	}
-// }
+		if s.callbacks.onTick != nil {
+			s.callbacks.onTick(tick)
+		}
+
+	} else if msg["t"] == "om" {
+		var orederTick models.OrderTick
+		if err := json.Unmarshal(inp, &orederTick); err != nil {
+			// May be error should be triggered
+			return
+		}
+
+		if s.callbacks.onOrderUpdate != nil {
+			s.callbacks.onOrderUpdate(orederTick)
+		}
+	}
+}
 
 // Close tries to close the connection gracefully. If the server doesn't close it
 func (s *SocketClient) Close() error {
@@ -425,7 +425,7 @@ func (s *SocketClient) Subscribe() error {
 
 	out, err := json.Marshal(tickerInput{
 		Type: "t",
-		Val:  s.scrips,
+		Val:  s.instrument,
 	})
 	if err != nil {
 		return err
