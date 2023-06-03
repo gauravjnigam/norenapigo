@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/diebietse/gotp/v2"
-	NorenApi "github.com/gauravjnigam/norenapigo/v1"
+	NorenApi "github.com/gauravjnigam/norenapigo"
 )
 
 func main() {

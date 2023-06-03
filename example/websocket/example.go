@@ -5,9 +5,9 @@ import (
 	"time"
 
 	"github.com/diebietse/gotp/v2"
-	NorenApi "github.com/gauravjnigam/norenapigo/v1"
-	models "github.com/gauravjnigam/norenapigo/v1/model"
-	"github.com/gauravjnigam/norenapigo/v1/websocket"
+	NorenApi "github.com/gauravjnigam/norenapigo"
+	models "github.com/gauravjnigam/norenapigo/model"
+	"github.com/gauravjnigam/norenapigo/websocket"
 )
 
 var socketClient *websocket.SocketClient

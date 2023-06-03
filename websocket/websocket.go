@@ -13,7 +13,7 @@ import (
 	"sync"
 	"time"
 
-	models "github.com/gauravjnigam/norenapigo/v1/model"
+	models "github.com/gauravjnigam/norenapigo/model"
 	"github.com/gorilla/websocket"
 )
 
