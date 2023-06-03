@@ -4,13 +4,13 @@ import (
 	"fmt"
 
 	"github.com/diebietse/gotp/v2"
-	NorenApi "github.com/norenapigo/v2"
+	NorenApi "github.com/gauravjnigam/norenapigo/v2"
 )
 
 func main() {
 
 	// Create New Shoonya Broking Client
-	NorenClient := NorenApi.New("FA87226", "AlgoBaba@23", "aa4cff2b3742cc0eeeea60d51e311722")
+	NorenClient := NorenApi.New("FA87226", "AlgoDada@23", "aa4cff2b3742cc0eeeea60d51e311722")
 
 	fmt.Println("Client :- ", NorenClient)
 	clientTotpSecret := "U6CFCE65M63MLV655H25D2327HU36YYJ"
