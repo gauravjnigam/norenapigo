@@ -13,8 +13,8 @@ import (
 	"sync"
 	"time"
 
+	models "github.com/gauravjnigam/norenapigo/v1/model"
 	"github.com/gorilla/websocket"
-	models "github.com/norenapigo/v2/model"
 )
 
 type SocketClient struct {

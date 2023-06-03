@@ -10,7 +10,7 @@ import (
 func main() {
 
 	// Create New Shoonya Broking Client
-	NorenClient := NorenApi.New("FA87226", "AlgoDada@23", "aa4cff2b3742cc0eeeea60d51e311722")
+	NorenClient := NorenApi.New("FA87226", "AlgoBaba@23", "aa4cff2b3742cc0eeeea60d51e311722")
 
 	fmt.Println("Client :- ", NorenClient)
 	clientTotpSecret := "U6CFCE65M63MLV655H25D2327HU36YYJ"
@@ -59,23 +59,10 @@ func main() {
 	fmt.Println("User Profile :- ", session.UserProfile)
 	fmt.Println("User Session Object :- ", session)
 
-	//Get Last Traded Price
-	ltp, err := NorenClient.GetLTP(NorenApi.LTPParams{Exchange: "NSE", Token: "3045"})
+	// //Get Last Traded Price
+	// orderParam := NorenApi.OrderParams{
+	// 	OrderSource: "API",
+	// }
+	// _, err := NorenClient.PlaceOrder(orderParam)
 
-	if err != nil {
-		fmt.Println(err.Error())
-		return
-	}
-
-	fmt.Println("Last Traded Price :- ", ltp)
-
-	//Get Last Traded Price
-	fmt.Println("Fetching timeseries data - ")
-	canldels, err := NorenClient.GetTimePriceSeries(NorenApi.TSPriceParam{Exch: "NSE", Token: "Nifty Bank", St: "1685677500", Et: "1685684700", Intrv: "60"})
-
-	if err != nil {
-		fmt.Println(err.Error())
-		return
-	}
-	fmt.Println(canldels)
 }

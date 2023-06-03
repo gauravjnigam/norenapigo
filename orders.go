@@ -46,32 +46,34 @@ type Orders []Order
 
 // OrderParams represents parameters for placing an order.
 type OrderParams struct {
-	Variety         string `json:"variety"`
-	TradingSymbol   string `json:"tradingsymbol"`
-	SymbolToken     string `json:"symboltoken"`
-	TransactionType string `json:"transactiontype"`
-	Exchange        string `json:"exchange"`
-	OrderType       string `json:"ordertype"`
-	ProductType     string `json:"producttype"`
-	Duration        string `json:"duration"`
-	Price           string `json:"price"`
-	SquareOff       string `json:"squareoff"`
-	StopLoss        string `json:"stoploss"`
-	Quantity        string `json:"quantity"`
+	OrderSource     string `json:"ordersource"`
+	UserId          string `json:"uid"`
+	AccountId       string `json:"actid"`
+	TransactionType string `json:"trantype"`
+	ProductType     string `json:"prd"`
+	Exchange        string `json:"exch"`
+	TradingSymbol   string `json:"tsym "`
+	Quantity        string `json:"qty"`
+	PriceType       string `json:"prctyp"`
+	Price           string `json:"prc"`
+	Retention       string `json:"ret"`
+	Remarks         string `json:"remarks"`
 }
 
 // OrderParams represents parameters for modifying an order.
 type ModifyOrderParams struct {
-	Variety       string `json:"variety"`
-	OrderID       string `json:"orderid"`
-	OrderType     string `json:"ordertype"`
-	ProductType   string `json:"producttype"`
-	Duration      string `json:"duration"`
-	Price         string `json:"price"`
-	Quantity      string `json:"quantity"`
-	TradingSymbol string `json:"tradingsymbol"`
-	SymbolToken   string `json:"symboltoken"`
-	Exchange      string `json:"exchange"`
+	OrderSource     string `json:"ordersource"`
+	UserId          string `json:"uid"`
+	AccountId       string `json:"actid"`
+	TransactionType string `json:"trantype"`
+	ProductType     string `json:"prd"`
+	Exchange        string `json:"exch"`
+	TradingSymbol   string `json:"tsym "`
+	Quantity        string `json:"qty"`
+	PriceType       string `json:"prctyp"`
+	Price           string `json:"prc"`
+	Retention       string `json:"ret"`
+	Remarks         string `json:"remarks"`
 }
 
 // OrderResponse represents the order place success response.
@@ -223,17 +225,4 @@ func (c *Client) GetTradeBook() (Trades, error) {
 	var trades Trades
 	err := c.doEnvelope(http.MethodGet, URIGetTradeBook, nil, nil, &trades, true)
 	return trades, err
-}
-
-// ConvertPosition converts position's product type.
-func (c *Client) ConvertPosition(convertPositionParams ConvertPositionParams) error {
-	var (
-		params map[string]interface{}
-		err    error
-	)
-
-	params = structToMap(convertPositionParams, "json")
-
-	err = c.doEnvelope(http.MethodPost, URIConvertPosition, params, nil, nil, true)
-	return err
 }

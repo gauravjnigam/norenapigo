@@ -60,6 +60,7 @@ func (c *Client) GetLTP(ltpParams LTPParams) (LTPResponse, error) {
 	return ltp, err
 }
 
+// Get historial timePrice series
 func (c *Client) GetTimePriceSeries(tsPriceParam TSPriceParam) (TSPResponse, error) {
 	var tsResponse TSPResponse
 	fmt.Printf("TSP Param: \n%v\n", tsPriceParam)

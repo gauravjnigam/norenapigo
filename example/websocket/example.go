@@ -5,9 +5,9 @@ import (
 	"time"
 
 	"github.com/diebietse/gotp/v2"
-	NorenApi "github.com/norenapigo/v2"
-	models "github.com/norenapigo/v2/model"
-	"github.com/norenapigo/v2/websocket"
+	NorenApi "github.com/gauravjnigam/norenapigo/v1"
+	models "github.com/gauravjnigam/norenapigo/v1/model"
+	"github.com/gauravjnigam/norenapigo/v1/websocket"
 )
 
 var socketClient *websocket.SocketClient
@@ -62,7 +62,7 @@ func onNoReconnect(attempt int) {
 func main() {
 
 	// Create New Angel Broking Client
-	NorenClient := NorenApi.New("FA87226", "AlgoBaba@23", "aa4cff2b3742cc0eeeea60d51e311722")
+	NorenClient := NorenApi.New("FA87226", "AlgoDada@23", "aa4cff2b3742cc0eeeea60d51e311722")
 
 	// fmt.Println("Client :- ", NorenClient)
 	clientTotpSecret := "U6CFCE65M63MLV655H25D2327HU36YYJ"

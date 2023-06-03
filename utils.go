@@ -28,8 +28,6 @@ const (
 	URIGetPositions       string = "PositionBook"
 	URIGetTradeBook       string = "TradeBook"
 	URILTP                string = "GetQuotes"
-	URIRMS                string = "rest/secure/angelbroking/user/v1/getRMS"
-	URIConvertPosition    string = "rest/secure/angelbroking/order/v1/convertPosition"
 	URITPSeries           string = "TPSeries"
 	URISearchScript       string = "SearchScrip"
 	URISingleOrderHistory string = "SingleOrdHist"
