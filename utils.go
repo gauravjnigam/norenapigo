@@ -2,12 +2,15 @@ package norenapigo
 
 import (
 	"errors"
+	"fmt"
 	"io/ioutil"
 	"net"
 	"net/http"
 	"reflect"
 	"strings"
 	"time"
+
+	"github.com/golang/glog"
 )
 
 type Time struct {
@@ -180,4 +183,15 @@ func getPublicIp() (string, error) {
 		return "", err
 	}
 	return string(content), nil
+}
+
+func GetTime(timeString string) string {
+	layout := "02-01-2006 15:04:05"
+	time_location, _ := time.LoadLocation("Asia/Kolkata")
+	t, err := time.ParseInLocation(layout, timeString, time_location)
+	// t, err := time.Parse(layout, timeString)
+	if err != nil {
+		glog.Fatal(err)
+	}
+	return fmt.Sprintf("%d", t.Unix())
 }

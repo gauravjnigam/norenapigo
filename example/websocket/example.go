@@ -92,7 +92,7 @@ func main() {
 
 	// time.Sleep(1 * time.Second)
 	// New Websocket Client
-	socketClient = websocket.New(session.UID, session.Susertoken, "NSE|26009#NSE|22")
+	socketClient = websocket.New(session.UID, session.Susertoken, "NSE|26000")
 
 	// Assign callbacks
 	socketClient.OnError(onError)

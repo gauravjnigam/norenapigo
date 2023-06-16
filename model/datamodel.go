@@ -30,6 +30,7 @@ type Time struct {
 }
 
 type Tick struct {
+	Timestamp     string `json:"ft"`
 	Type          string `json:"t"`
 	Exch          string `json:"e"`
 	Token         string `json:"tk"`

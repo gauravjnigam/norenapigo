@@ -68,10 +68,12 @@ func main() {
 	}
 
 	fmt.Println("Last Traded Price :- ", ltp)
+	start := "09-06-2023 09:15:00"
+	end := "09-06-2023 15:10:00"
 
 	//Get Last Traded Price
 	fmt.Println("Fetching timeseries data - ")
-	canldels, err := NorenClient.GetTimePriceSeries(NorenApi.TSPriceParam{Exch: "NSE", Token: "Nifty Bank", St: "1685677500", Et: "1685684700", Intrv: "60"})
+	canldels, err := NorenClient.GetTimePriceSeries("NSE", "26000", start, end, "60")
 
 	if err != nil {
 		fmt.Println(err.Error())

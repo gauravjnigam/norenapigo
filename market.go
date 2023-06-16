@@ -1,7 +1,6 @@
 package norenapigo
 
 import (
-	"fmt"
 	"net/http"
 )
 
@@ -61,12 +60,16 @@ func (c *Client) GetLTP(ltpParams LTPParams) (LTPResponse, error) {
 }
 
 // Get historial timePrice series
-func (c *Client) GetTimePriceSeries(tsPriceParam TSPriceParam) (TSPResponse, error) {
-	var tsResponse TSPResponse
-	fmt.Printf("TSP Param: \n%v\n", tsPriceParam)
+func (c *Client) GetTimePriceSeries(exchange string, token string, startTime string, endTime string, interval string) (TSPResponse, error) {
+	start := GetTime(startTime)
+	end := GetTime(endTime)
+	tsPriceParam := TSPriceParam{Exch: exchange, Token: token, St: start, Et: end, Intrv: interval}
+	var candle []Candle
+	// fmt.Printf("TSP Param: \n%v\n", tsPriceParam)
 	params := structToMap(tsPriceParam, "json")
-	fmt.Printf("Req Param : \n%v\n", params)
+	// fmt.Printf("Req Param : \n%v\n", params)
 	params["uid"] = c.clientCode
-	err := c.doEnvelope(http.MethodPost, URITPSeries, params, nil, &tsResponse, true)
+	err := c.doEnvelope(http.MethodPost, URITPSeries, params, nil, &candle, true)
+	tsResponse := TSPResponse{Candles: candle}
 	return tsResponse, err
 }
