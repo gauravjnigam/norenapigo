@@ -26,6 +26,12 @@ type Holdings []Holding
 // GetHoldings gets a list of holdings.
 func (c *Client) GetHoldings() (Holdings, error) {
 	var holdings Holdings
-	err := c.doEnvelope(http.MethodGet, URIGetHoldings, nil, nil, &holdings, true)
+
+	params := map[string]interface{}{}
+	params["uid"] = c.clientCode
+	params["actid"] = c.clientCode
+	params["prd"] = "C"
+
+	err := c.doEnvelope(http.MethodPost, URIGetHoldings, params, nil, &holdings, true)
 	return holdings, err
 }

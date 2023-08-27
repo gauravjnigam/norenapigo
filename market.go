@@ -1,6 +1,7 @@
 package norenapigo
 
 import (
+	"fmt"
 	"net/http"
 )
 
@@ -23,6 +24,17 @@ type LTPParams struct {
 	Token    string `json:"token"`
 }
 
+// LTPParams represents parameters for getting LTP.
+type SecurityInfoParams struct {
+	Exchange string `json:"exch"`
+	Token    string `json:"token"`
+}
+
+type SecurityInfoResponse struct {
+	Exchange      string `json:"exch"`
+	TradingSymbol string `json:"tsym"`
+}
+
 type Candle struct {
 	Stat    string `json:"stat"`
 	Time    string `json:"time"`
@@ -42,6 +54,16 @@ type TSPResponse struct {
 	Candles []Candle
 }
 
+type SearchResponse struct {
+	Stat   string `json:"stat"`
+	Values []struct {
+		Exch  string `json:"exch"`
+		Token string `json:"token"`
+		Tsym  string `json:"tsym"`
+	} `json:"values"`
+	ErrorMessage string `json:"emsg"`
+}
+
 type TSPriceParam struct {
 	Exch  string `json:"exch"`
 	Token string `json:"token"`
@@ -59,6 +81,15 @@ func (c *Client) GetLTP(ltpParams LTPParams) (LTPResponse, error) {
 	return ltp, err
 }
 
+// GetLTP gets Last Traded Price.
+func (c *Client) GetSecurityInfo(secInfoParam SecurityInfoParams) (SecurityInfoResponse, error) {
+	var siResponse SecurityInfoResponse
+	params := structToMap(secInfoParam, "json")
+	params["uid"] = c.clientCode
+	err := c.doEnvelope(http.MethodPost, URISecurityInfo, params, nil, &siResponse, true)
+	return siResponse, err
+}
+
 // Get historial timePrice series
 func (c *Client) GetTimePriceSeries(exchange string, token string, startTime string, endTime string, interval string) (TSPResponse, error) {
 	start := GetTime(startTime)
@@ -73,3 +104,59 @@ func (c *Client) GetTimePriceSeries(exchange string, token string, startTime str
 	tsResponse := TSPResponse{Candles: candle}
 	return tsResponse, err
 }
+
+// GetTradingSymbol(self, exchange, searchText)
+func (c *Client) GetTradingSymbol(exchange string, searchText string) (string, error) {
+	searchResp, err := c.Searchscrip(exchange, searchText)
+	if err != nil {
+		fmt.Printf("Error while searching - %v", err)
+	}
+	var tsym string
+	if searchResp.Stat == "Ok" && len(searchResp.Values) > 0 {
+		tsym = searchResp.Values[0].Tsym
+	} else {
+		return "", err
+	}
+
+	return tsym, nil
+}
+
+// GetLatestPrice(tradingSymbol, exchange):
+func (c *Client) GetLatestPrice(tradingSymbol string, exchange string) (LTPResponse, error) {
+	var ltp LTPResponse
+	params := map[string]interface{}{}
+	searchResp, err := c.Searchscrip(exchange, tradingSymbol)
+	if err != nil {
+		fmt.Printf("Error while searching - %v", err)
+	}
+	var token string
+	if searchResp.Stat == "Ok" && len(searchResp.Values) > 0 {
+		token = searchResp.Values[0].Token
+	}
+
+	params["uid"] = c.clientCode
+	params["exch"] = exchange
+	params["token"] = token
+
+	err1 := c.doEnvelope(http.MethodPost, URILTP, params, nil, &ltp, true)
+
+	return ltp, err1
+}
+
+func (c *Client) Searchscrip(exchange string, searchscrip string) (SearchResponse, error) {
+
+	var searchResponse SearchResponse
+	params := map[string]interface{}{}
+	params["uid"] = c.clientCode
+	params["exch"] = exchange
+	params["stext"] = searchscrip
+
+	err := c.doEnvelope(http.MethodPost, URISearchScript, params, nil, &searchResponse, true)
+
+	return searchResponse, err
+}
+
+// def GetExpriyDate(self, expiryType, expiryInstance):
+// func (c *Client) GetExpriyDate(expiryType string, expiryInstance string) (string, error) {
+
+// }

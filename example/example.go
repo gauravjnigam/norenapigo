@@ -68,16 +68,42 @@ func main() {
 	}
 
 	fmt.Println("Last Traded Price :- ", ltp)
-	start := "09-06-2023 09:15:00"
-	end := "09-06-2023 15:10:00"
+	// start := "09-06-2023 09:15:00"
+	// end := "09-06-2023 15:10:00"
 
-	//Get Last Traded Price
-	fmt.Println("Fetching timeseries data - ")
-	canldels, err := NorenClient.GetTimePriceSeries("NSE", "26000", start, end, "60")
+	// //Get Last Traded Price
+	// fmt.Println("Fetching timeseries data - ")
+	// // canldels, err := NorenClient.GetTimePriceSeries("NSE", "26000", start, end, "60")
 
+	// if err != nil {
+	// 	fmt.Println(err.Error())
+	// 	return
+	// }
+	// fmt.Println(canldels)
+
+	orders, err := NorenClient.GetSecurityInfo(NorenApi.SecurityInfoParams{Exchange: "NSE", Token: "3045"})
 	if err != nil {
-		fmt.Println(err.Error())
-		return
+		fmt.Println(err)
 	}
-	fmt.Println(canldels)
+	fmt.Printf("SecurityInfo resp : %v", orders)
+
+	holdings, err1 := NorenClient.GetHoldings()
+	if err1 != nil {
+		fmt.Println(err)
+	}
+	fmt.Printf("Holdings resp : %v", holdings)
+
+	searchScriptRes, err1 := NorenClient.Searchscrip("NFO", "BANKNIFTY")
+	if err1 != nil {
+		fmt.Println(err)
+	}
+	fmt.Printf("Searched text resp : %v", searchScriptRes)
+
+	tsym := "HDFCBANK-EQ"
+	ltpResp, err1 := NorenClient.GetLatestPrice(tsym, "NSE")
+	if err1 != nil {
+		fmt.Println(err)
+	}
+	fmt.Printf("Latest price for %s : %v", tsym, ltpResp.C)
+
 }

@@ -23,7 +23,7 @@ const (
 	URIUserSessionRenew   string = "QuickAuth"
 	URIUserProfile        string = "UserDetails"
 	URILogout             string = "Logout"
-	URIGetOrderBook       string = "OrderBook"
+	URIGetOrderBook       string = "SingleOrdHist"
 	URIPlaceOrder         string = "PlaceOrder"
 	URIModifyOrder        string = "ModifyOrder"
 	URICancelOrder        string = "CancelOrder"
@@ -36,6 +36,10 @@ const (
 	URISingleOrderHistory string = "SingleOrdHist"
 	URISecurityInfo       string = "GetSecurityInfo"
 	URIOrderMargin        string = "GetOrderMargin"
+	URIPlaceGTTOrder      string = "PlaceGTTOrder"
+	URICancelGTTOrder     string = "CancelGTTOrder"
+	URIGetPendingGTTOrder string = "GetPendingGTTOrder"
+	URIGetEnabledGTTs     string = "GetEnabledGTTs"
 )
 
 func structToMap(obj interface{}, tagName string) map[string]interface{} {
@@ -44,6 +48,11 @@ func structToMap(obj interface{}, tagName string) map[string]interface{} {
 	case OrderParams:
 		{
 			con := obj.(OrderParams)
+			values = reflect.ValueOf(&con).Elem()
+		}
+	case GetOrderParams:
+		{
+			con := obj.(GetOrderParams)
 			values = reflect.ValueOf(&con).Elem()
 		}
 
@@ -55,6 +64,11 @@ func structToMap(obj interface{}, tagName string) map[string]interface{} {
 	case LTPParams:
 		{
 			con := obj.(LTPParams)
+			values = reflect.ValueOf(&con).Elem()
+		}
+	case SecurityInfoParams:
+		{
+			con := obj.(SecurityInfoParams)
 			values = reflect.ValueOf(&con).Elem()
 		}
 	case TSPriceParam:

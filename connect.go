@@ -2,6 +2,7 @@ package norenapigo
 
 import (
 	"crypto/tls"
+	"fmt"
 	_ "fmt"
 	"net/http"
 	"time"
@@ -92,7 +93,7 @@ func (c *Client) doEnvelope(method, uri string, params map[string]interface{}, h
 
 	headers.Add("charset", "utf-8")
 
-	// fmt.Printf("\n--> Method : %s \nURL : %s \nParam : %v\n Header : %v\n, V: %v\n AccessToken: %v\n", method, c.baseURI+uri, params, headers, v, c.accessToken)
+	fmt.Printf("\n--> Method : %s \nURL : %s \nParam : %v\n Header : %v\n, V: %v\n AccessToken: %v\n", method, c.baseURI+uri, params, headers, v, c.accessToken)
 
 	return c.httpClient.DoEnvelope(method, c.baseURI+uri, params, headers, c.accessToken, v)
 }

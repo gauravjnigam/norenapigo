@@ -1,8 +1,14 @@
 package norenapigo
 
 import (
+	"fmt"
 	"net/http"
+	"strconv"
 )
+
+type GetOrderParams struct {
+	OrderID string `json:"norenordno"`
+}
 
 // Order represents a individual order response.
 type Order struct {
@@ -46,18 +52,19 @@ type Orders []Order
 
 // OrderParams represents parameters for placing an order.
 type OrderParams struct {
-	OrderSource     string `json:"ordersource"`
-	UserId          string `json:"uid"`
-	AccountId       string `json:"actid"`
-	TransactionType string `json:"trantype"`
-	ProductType     string `json:"prd"`
-	Exchange        string `json:"exch"`
-	TradingSymbol   string `json:"tsym "`
-	Quantity        string `json:"qty"`
-	PriceType       string `json:"prctyp"`
-	Price           string `json:"prc"`
-	Retention       string `json:"ret"`
-	Remarks         string `json:"remarks"`
+	OrderSource       string `json:"ordersource"`
+	UserId            string `json:"uid"`
+	AccountId         string `json:"actid"`
+	TransactionType   string `json:"trantype"`
+	ProductType       string `json:"prd"`
+	Exchange          string `json:"exch"`
+	TradingSymbol     string `json:"tsym "`
+	Quantity          string `json:"qty"`
+	PriceType         string `json:"prctyp"`
+	Price             string `json:"price"`
+	Retention         string `json:"ret"`
+	Remarks           string `json:"remarks"`
+	DisclosedQuantity string `json:"dscqty"`
 }
 
 // OrderParams represents parameters for modifying an order.
@@ -78,8 +85,55 @@ type ModifyOrderParams struct {
 
 // OrderResponse represents the order place success response.
 type OrderResponse struct {
-	Script  string `json:"script"`
-	OrderID string `json:"orderid"`
+	Stat        string `json:"stat"`
+	OrderID     string `json:"norenordno"`
+	RequestTime string `json:"request_time"`
+	Emsg        string `json:"emsg"`
+}
+
+type GTTOrderResponse struct {
+	Stat        string `json:"stat"`
+	AlertID     string `json:"Al_id"`
+	RequestTime string `json:"request_time"`
+	Emsg        string `json:"emsg"`
+}
+
+type GTTRequestContext struct {
+	Exchange        string
+	TradingSymbol   string
+	TransactionType string
+	AlertType       string
+	AlertPriceAbove float64
+	AlertPriceBelow float64
+	PriceType       string
+	Price           float64
+	ProductType     string
+	Quantity        int
+	Retention       string
+	Validity        string
+	OrderRemark     string
+	Discloseqty     int
+}
+
+//	product_type= gCtx.product_type, quantity= gCtx.quantity, price_type=gCtx.price_type, price=gCtx.price, remarks= gCtx.order_remark, retention=gCtx.retention, validity=gCtx.validity, discloseqty=gCtx.discloseqty
+//
+// GTTOrderParams represents parameters for placing a GTT order.
+type GTTOrderParams struct {
+	AlertType       string
+	TradingSymbol   string
+	Exchange        string
+	AlertPrice      float64
+	AlertPriceAbove float64
+	AlertPriceBelow float64
+	TransactionType string
+	ProductType     string
+	Quantity        int
+	PriceType       string
+	Price           float64
+	Remarks         string
+	Retention       string
+	Validity        string
+	Discloseqty     int
 }
 
 // Trade represents an individual trade response.
@@ -164,35 +218,79 @@ type ConvertPositionParams struct {
 }
 
 // GetOrderBook gets user orders.
-func (c *Client) GetOrderBook() (Orders, error) {
-	var orders Orders
-	err := c.doEnvelope(http.MethodGet, URIGetOrderBook, nil, nil, &orders, true)
+func (c *Client) GetOrderBook() (interface{}, error) {
+	var orders interface{}
+	params := map[string]interface{}{}
+	params["uid"] = c.clientCode
+
+	err := c.doEnvelope(http.MethodPost, URIGetOrderBook, params, nil, &orders, true)
+	return orders, err
+}
+
+// GetOrderBook gets user orders.
+func (c *Client) GetOrderHistory(getOrderParams GetOrderParams) (interface{}, error) {
+	var orders interface{}
+	params := structToMap(getOrderParams, "json")
+	params["uid"] = c.clientCode
+	params["actid"] = c.clientCode
+
+	err := c.doEnvelope(http.MethodPost, URIGetOrderBook, params, nil, &orders, true)
 	return orders, err
 }
 
 // PlaceOrder places an order.
-func (c *Client) PlaceOrder(orderParams OrderParams) (OrderResponse, error) {
-	var (
-		orderResponse OrderResponse
-		params        map[string]interface{}
-		err           error
-	)
+func (c *Client) PlaceOrder(orderParams OrderParams) (interface{}, error) {
+	var orderResponse interface{}
+	// params := structToMap(orderParams, "json")
+	params := map[string]interface{}{}
+	params["uid"] = c.clientCode
 
-	params = structToMap(orderParams, "json")
+	params["ordersource"] = "API"
+	params["uid"] = c.clientCode
+	params["actid"] = orderParams.AccountId
+	params["trantype"] = orderParams.TransactionType
+	params["prd"] = orderParams.ProductType
+	params["exch"] = orderParams.Exchange
+	params["tsym"] = orderParams.TradingSymbol
+	params["qty"] = orderParams.Quantity
+	params["dscqty"] = orderParams.DisclosedQuantity
+	params["prctyp"] = orderParams.PriceType
+	params["prc"] = orderParams.Price
+	params["trgprc"] = ""
+	params["ret"] = orderParams.Retention
+	params["remarks"] = orderParams.Remarks
+	params["amo"] = "NO"
 
-	err = c.doEnvelope(http.MethodPost, URIPlaceOrder, params, nil, &orderResponse, true)
+	fmt.Printf("Param : %v", params)
+	err := c.doEnvelope(http.MethodPost, URIPlaceOrder, params, nil, &orderResponse, true)
 	return orderResponse, err
 }
 
 // ModifyOrder for modifying an order.
-func (c *Client) ModifyOrder(modifyOrderParams ModifyOrderParams) (OrderResponse, error) {
+func (c *Client) ModifyOrder(orderParams ModifyOrderParams) (OrderResponse, error) {
 	var (
 		orderResponse OrderResponse
 		params        map[string]interface{}
 		err           error
 	)
 
-	params = structToMap(modifyOrderParams, "json")
+	params["uid"] = c.clientCode
+
+	params["ordersource"] = "API"
+	params["uid"] = c.clientCode
+	params["actid"] = orderParams.AccountId
+	params["trantype"] = orderParams.TransactionType
+	params["prd"] = orderParams.ProductType
+	params["exch"] = orderParams.Exchange
+	params["tsym"] = orderParams.TradingSymbol
+	params["qty"] = orderParams.Quantity
+	params["dscqty"] = "0"
+	params["prctyp"] = orderParams.PriceType
+	params["prc"] = orderParams.Price
+	params["trgprc"] = ""
+	params["ret"] = orderParams.Retention
+	params["remarks"] = orderParams.Remarks
+	params["amo"] = "NO"
 
 	err = c.doEnvelope(http.MethodPost, URIModifyOrder, params, nil, &orderResponse, true)
 	return orderResponse, err
@@ -225,4 +323,195 @@ func (c *Client) GetTradeBook() (Trades, error) {
 	var trades Trades
 	err := c.doEnvelope(http.MethodGet, URIGetTradeBook, nil, nil, &trades, true)
 	return trades, err
+}
+
+// GTT Apis
+// PlaceGTTOrder
+func (c *Client) PlaceGTTOrder(gttCtx GTTRequestContext) (interface{}, error) {
+	var gttOrderResponse interface{}
+
+	if gttCtx.AlertType == "LTP_A_O" || gttCtx.AlertType == "LTP_B_O" {
+		alertPrice := 0.0
+		if gttCtx.AlertType == "LTP_A_O" {
+			alertPrice = gttCtx.AlertPriceAbove
+		}
+
+		if gttCtx.AlertType == "LTP_B_O" {
+			alertPrice = gttCtx.AlertPriceBelow
+		}
+
+		if gttCtx.PriceType == "LMT" {
+			c.PlaceGTT_LMT_order(GTTOrderParams{TradingSymbol: gttCtx.TradingSymbol, Exchange: gttCtx.Exchange, AlertType: gttCtx.AlertType,
+				AlertPrice: alertPrice, TransactionType: gttCtx.TransactionType,
+				ProductType: gttCtx.ProductType,
+				Quantity:    gttCtx.Quantity,
+				PriceType:   gttCtx.PriceType,
+				Price:       gttCtx.Price,
+				Remarks:     gttCtx.OrderRemark,
+				Retention:   "DAY",
+				Validity:    "GTT",
+				Discloseqty: gttCtx.Discloseqty})
+
+		} else if gttCtx.PriceType == "MKT" {
+			c.PlaceGTT_MKT_order(GTTOrderParams{TradingSymbol: gttCtx.TradingSymbol, Exchange: gttCtx.Exchange, AlertType: gttCtx.AlertType,
+				AlertPrice: alertPrice, TransactionType: gttCtx.TransactionType,
+				ProductType: gttCtx.ProductType,
+				Quantity:    gttCtx.Quantity,
+				PriceType:   gttCtx.PriceType,
+				Price:       gttCtx.Price,
+				Remarks:     gttCtx.OrderRemark,
+				Retention:   "DAY",
+				Validity:    "GTT",
+				Discloseqty: gttCtx.Discloseqty})
+		} else {
+
+		}
+
+	} else if gttCtx.AlertType == "LMT_BOS_O" {
+		if gttCtx.PriceType == "LMT" {
+			c.PlaceGTT_OCO_LMT_order(GTTOrderParams{TradingSymbol: gttCtx.TradingSymbol, Exchange: gttCtx.Exchange, AlertType: gttCtx.AlertType,
+				AlertPriceAbove: gttCtx.AlertPriceAbove, AlertPriceBelow: gttCtx.AlertPriceBelow, TransactionType: gttCtx.TransactionType,
+				ProductType: gttCtx.ProductType,
+				Quantity:    gttCtx.Quantity,
+				PriceType:   gttCtx.PriceType,
+				Price:       gttCtx.Price,
+				Remarks:     gttCtx.OrderRemark,
+				Retention:   "DAY",
+				Validity:    "GTT",
+				Discloseqty: gttCtx.Discloseqty})
+		} else if gttCtx.PriceType == "MKT" {
+			c.PlaceGTT_OCO_MKT_order(GTTOrderParams{TradingSymbol: gttCtx.TradingSymbol, Exchange: gttCtx.Exchange, AlertType: gttCtx.AlertType,
+				AlertPriceAbove: gttCtx.AlertPriceAbove, AlertPriceBelow: gttCtx.AlertPriceBelow, TransactionType: gttCtx.TransactionType,
+				ProductType: gttCtx.ProductType,
+				Quantity:    gttCtx.Quantity,
+				PriceType:   gttCtx.PriceType,
+				Price:       gttCtx.Price,
+				Remarks:     gttCtx.OrderRemark,
+				Retention:   "DAY",
+				Validity:    "GTT",
+				Discloseqty: gttCtx.Discloseqty})
+		} else {
+
+		}
+	}
+
+	return gttOrderResponse, nil
+}
+
+func (c *Client) PlaceGTT_LMT_order(gttOrdParam GTTOrderParams) (GTTOrderResponse, error) {
+	fmt.Printf("Placing GTT LMT Order for req : %v\n", gttOrdParam)
+	var gttOrdResponse GTTOrderResponse
+
+	params := map[string]interface{}{}
+	params["ordersource"] = "API"
+	params["uid"] = c.clientCode
+	params["actid"] = c.clientCode
+	params["tsym"] = gttOrdParam.TradingSymbol
+	params["exch"] = gttOrdParam.Exchange
+	params["ai_t"] = gttOrdParam.AlertType
+	params["validity"] = gttOrdParam.Validity
+	var ap string = strconv.FormatFloat(gttOrdParam.AlertPrice, 'E', -1, 32)
+	params["d"] = ap
+	params["remarks"] = gttOrdParam.Remarks
+	params["trantype"] = gttOrdParam.TransactionType
+	params["prctyp"] = gttOrdParam.PriceType
+	params["prd"] = gttOrdParam.ProductType
+	params["ret"] = gttOrdParam.Retention
+	var qty_str string = strconv.Itoa(gttOrdParam.Quantity)
+	params["qty"] = qty_str
+	var price_str string = strconv.FormatFloat(gttOrdParam.Price, 'E', -1, 32)
+	params["prc"] = price_str
+	var dscqty_str string = strconv.Itoa(gttOrdParam.Discloseqty)
+	params["dscqty"] = dscqty_str
+
+	err := c.doEnvelope(http.MethodPost, URIPlaceGTTOrder, params, nil, &gttOrdResponse, true)
+	return gttOrdResponse, err
+
+}
+func (c *Client) PlaceGTT_MKT_order(gttOrdParam GTTOrderParams) (GTTOrderResponse, error) {
+	var (
+		gttOrdResponse GTTOrderResponse
+		params         map[string]interface{}
+		err            error
+	)
+
+	params["uid"] = c.clientCode
+
+	err = c.doEnvelope(http.MethodPost, URIPlaceGTTOrder, params, nil, &gttOrdResponse, true)
+	return gttOrdResponse, err
+}
+func (c *Client) PlaceGTT_OCO_LMT_order(gttOrdParam GTTOrderParams) (GTTOrderResponse, error) {
+	var (
+		gttOrdResponse GTTOrderResponse
+		params         map[string]interface{}
+		err            error
+	)
+
+	params["uid"] = c.clientCode
+
+	err = c.doEnvelope(http.MethodPost, URIPlaceGTTOrder, params, nil, &gttOrdResponse, true)
+	return gttOrdResponse, err
+}
+func (c *Client) PlaceGTT_OCO_MKT_order(gttOrdParam GTTOrderParams) (GTTOrderResponse, error) {
+	var (
+		gttOrdResponse GTTOrderResponse
+		params         map[string]interface{}
+		err            error
+	)
+
+	params["uid"] = c.clientCode
+
+	err = c.doEnvelope(http.MethodPost, URIPlaceGTTOrder, params, nil, &gttOrdResponse, true)
+	return gttOrdResponse, err
+}
+
+// ModifyGTTOrder
+func (c *Client) ModifyGTTOrder(gttCtx GTTRequestContext) (interface{}, error) {
+	return nil, nil
+}
+
+// CancelGTTOrder
+func (c *Client) CancelGTTOrder(alertId string) (interface{}, error) {
+	var cancelGTTOrderResp interface{}
+	params := make(map[string]interface{})
+	params["uid"] = c.clientCode
+	params["al_id"] = alertId
+
+	err := c.doEnvelope(http.MethodPost, URICancelGTTOrder, params, nil, &cancelGTTOrderResp, true)
+
+	if err != nil {
+		fmt.Printf("Error while cancelling GTT for alert id - %v\n", alertId)
+		return nil, err
+	}
+	return cancelGTTOrderResp, nil
+}
+
+// GetPendingGTTOrder
+func (c *Client) GetPendingGTTOrder() (interface{}, error) {
+	var pendingGTTOrders interface{}
+	params := make(map[string]interface{})
+	params["uid"] = c.clientCode
+
+	err := c.doEnvelope(http.MethodPost, URIGetPendingGTTOrder, params, nil, &pendingGTTOrders, true)
+
+	if err != nil {
+		fmt.Printf("Error while getting pending GTTs - %v\n", err)
+		return nil, err
+	}
+	return pendingGTTOrders, nil
+}
+
+// GetEnabledGTTs
+func (c *Client) GetEnabledGTTs() (interface{}, error) {
+	var enabledGTTResp interface{}
+	params := make(map[string]interface{})
+	params["uid"] = c.clientCode
+
+	err := c.doEnvelope(http.MethodPost, URIGetEnabledGTTs, params, nil, &enabledGTTResp, true)
+
+	if err != nil {
+		fmt.Printf("Error while getting enabled GTT response - %v\n", err)
+		return nil, err
+	}
+	return enabledGTTResp, nil
 }
