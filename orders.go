@@ -239,8 +239,8 @@ func (c *Client) GetOrderHistory(getOrderParams GetOrderParams) (interface{}, er
 }
 
 // PlaceOrder places an order.
-func (c *Client) PlaceOrder(orderParams OrderParams) (interface{}, error) {
-	var orderResponse interface{}
+func (c *Client) PlaceOrder(orderParams OrderParams) (OrderResponse, error) {
+	var orderResponse OrderResponse
 	// params := structToMap(orderParams, "json")
 	params := map[string]interface{}{}
 	params["uid"] = c.clientCode
@@ -263,6 +263,7 @@ func (c *Client) PlaceOrder(orderParams OrderParams) (interface{}, error) {
 
 	fmt.Printf("Param : %v", params)
 	err := c.doEnvelope(http.MethodPost, URIPlaceOrder, params, nil, &orderResponse, true)
+
 	return orderResponse, err
 }
 
