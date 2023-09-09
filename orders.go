@@ -85,10 +85,10 @@ type ModifyOrderParams struct {
 
 // OrderResponse represents the order place success response.
 type OrderResponse struct {
-	Stat        string `json:"stat"`
-	OrderID     string `json:"norenordno"`
-	RequestTime string `json:"request_time"`
-	Emsg        string `json:"emsg"`
+	OrderStatus  string `json:"stat"`
+	OrderId      string `json:"norenordno"`
+	RequestTime  string `json:"request_time"`
+	ErrorMessage string `json:"emsg"`
 }
 
 type GTTOrderResponse struct {
@@ -327,7 +327,7 @@ func (c *Client) GetTradeBook() (Trades, error) {
 
 // GTT Apis
 // PlaceGTTOrder
-func (c *Client) PlaceGTTOrder(gttCtx GTTRequestContext) (interface{}, error) {
+func (c *Client) PlaceGTTOrder(gttCtx GTTOrderParams) (interface{}, error) {
 	var gttOrderResponse interface{}
 
 	if gttCtx.AlertType == "LTP_A_O" || gttCtx.AlertType == "LTP_B_O" {
@@ -347,7 +347,7 @@ func (c *Client) PlaceGTTOrder(gttCtx GTTRequestContext) (interface{}, error) {
 				Quantity:    gttCtx.Quantity,
 				PriceType:   gttCtx.PriceType,
 				Price:       gttCtx.Price,
-				Remarks:     gttCtx.OrderRemark,
+				Remarks:     gttCtx.Remarks,
 				Retention:   "DAY",
 				Validity:    "GTT",
 				Discloseqty: gttCtx.Discloseqty})
@@ -359,7 +359,7 @@ func (c *Client) PlaceGTTOrder(gttCtx GTTRequestContext) (interface{}, error) {
 				Quantity:    gttCtx.Quantity,
 				PriceType:   gttCtx.PriceType,
 				Price:       gttCtx.Price,
-				Remarks:     gttCtx.OrderRemark,
+				Remarks:     gttCtx.Remarks,
 				Retention:   "DAY",
 				Validity:    "GTT",
 				Discloseqty: gttCtx.Discloseqty})
@@ -375,7 +375,7 @@ func (c *Client) PlaceGTTOrder(gttCtx GTTRequestContext) (interface{}, error) {
 				Quantity:    gttCtx.Quantity,
 				PriceType:   gttCtx.PriceType,
 				Price:       gttCtx.Price,
-				Remarks:     gttCtx.OrderRemark,
+				Remarks:     gttCtx.Remarks,
 				Retention:   "DAY",
 				Validity:    "GTT",
 				Discloseqty: gttCtx.Discloseqty})
@@ -386,7 +386,7 @@ func (c *Client) PlaceGTTOrder(gttCtx GTTRequestContext) (interface{}, error) {
 				Quantity:    gttCtx.Quantity,
 				PriceType:   gttCtx.PriceType,
 				Price:       gttCtx.Price,
-				Remarks:     gttCtx.OrderRemark,
+				Remarks:     gttCtx.Remarks,
 				Retention:   "DAY",
 				Validity:    "GTT",
 				Discloseqty: gttCtx.Discloseqty})
