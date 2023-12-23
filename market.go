@@ -3,6 +3,8 @@ package norenapigo
 import (
 	"fmt"
 	"net/http"
+	"strconv"
+	"time"
 )
 
 // LTPResponse represents LTP API Response.
@@ -62,6 +64,10 @@ type SearchResponse struct {
 		Tsym  string `json:"tsym"`
 	} `json:"values"`
 	ErrorMessage string `json:"emsg"`
+}
+
+type ExpiryDateResponse struct {
+	ExpiryDate string `json:"expiryDate"`
 }
 
 type TSPriceParam struct {
@@ -156,7 +162,90 @@ func (c *Client) Searchscrip(exchange string, searchscrip string) (SearchRespons
 	return searchResponse, err
 }
 
-// def GetExpriyDate(self, expiryType, expiryInstance):
-// func (c *Client) GetExpriyDate(expiryType string, expiryInstance string) (string, error) {
+func (c *Client) GetExpiry(basesearch string, instrumentCode string, optionOrFuture string, expiryType string, expiryInstance int) (ExpiryDateResponse, error) {
 
-// }
+	var expiryResp ExpiryDateResponse
+
+	searchString := c.getSearchStringForExpiry(basesearch, instrumentCode, optionOrFuture, expiryType)
+
+	searchResp, err := c.Searchscrip("NFO", searchString)
+
+	if err != nil {
+		fmt.Errorf("Error while fetching expiry date - %v", err)
+		return expiryResp, err
+	}
+
+	if searchResp.Stat == "Ok" && len(searchResp.Values) > 0 {
+		for _, val := range searchResp.Values {
+			fmt.Printf("%s\n", val.Tsym)
+		}
+	}
+
+	return expiryResp, nil
+
+}
+
+func (c *Client) getSearchStringForExpiry(baseSearch string, instrumentCode string, optionOrFuture string, expiryType string) string {
+	ltp, err := c.GetLTP(LTPParams{Exchange: "NSE", Token: instrumentCode})
+
+	if err != nil {
+		fmt.Errorf("Error while fetching LTP to calculate expiry", err)
+		return "--INVALID--"
+	}
+
+	// atm price for instument i.e. Nifty, banknifty, finnifty
+	ltpFlt, _ := strconv.ParseFloat(ltp.C, 64)
+	atmPrice := getATMStrike(ltpFlt, ltp.Tsym)
+	fmt.Printf("%s LTP : %v", ltp.Tsym, atmPrice)
+	atmPriceStr := fmt.Sprintf("%d", atmPrice)
+	t := time.Now()
+	monthYear := fmt.Sprintf("%s%d", t.Month().String()[:3], t.Year()%1e2)
+	fmt.Printf("Current Month and year : %s\n", monthYear)
+
+	if optionOrFuture == "OPTION" {
+		baseSearch = baseSearch + " " + monthYear + " C" + " " + atmPriceStr
+	}
+	fmt.Printf("Search string for expiry :\n" + baseSearch)
+	return baseSearch
+}
+
+func (c *Client) GetExpiryDate(expiryType string, expiryInstance int) (ExpiryDateResponse, error) {
+	var expiryDate time.Time
+	var expDateResp ExpiryDateResponse
+	dayVal := time.Now()
+	fmt.Printf("\nExpiry request for %s - %d, for day: %s\n", expiryType, expiryInstance, dayVal.Format("2006-01-02"))
+
+	if expiryType == "WEEKLY" {
+		fmt.Printf("Weekly\n")
+		dayVal = dayVal.Add(time.Duration(7*expiryInstance) * 24 * time.Hour)
+		fmt.Printf("dayVal - %v\n", dayVal)
+		wexp := weeklyExpiry(dayVal)
+		expiryDate = wexp
+	}
+
+	if expiryType == "MONTHLY" {
+		dayVal = dayVal.Add(time.Duration(31*expiryInstance) * 24 * time.Hour)
+		mexp := monthlyExpiry(dayVal)
+		expiryDate = mexp
+	}
+
+	if !expiryDate.IsZero() {
+		expDateStr := expiryDate.Format("02Jan06")
+		fmt.Printf("Expiry date = %s\n", expDateStr)
+		expDateResp.ExpiryDate = expDateStr
+	}
+
+	return expDateResp, nil
+}
+
+func getATMStrike(ltp float64, instrumentSymbol string) int64 {
+	if instrumentSymbol == "Nifty Bank" || instrumentSymbol == "Bank Nifty" {
+		rem := int64(ltp) % 100
+		return int64(ltp) + (100 - rem)
+	} else if instrumentSymbol == "NIFTY" || instrumentSymbol == "Nifty 50" {
+		return int64(ltp) + (50 - int64(ltp)%50)
+	} else {
+		rem := int64(ltp) % 100
+		return int64(ltp) + (100 - rem)
+	}
+}

@@ -10,7 +10,7 @@ import (
 func main() {
 
 	// Create New Shoonya Broking Client
-	NorenClient := NorenApi.New("FA87226", "AlgoDada@23", "aa4cff2b3742cc0eeeea60d51e311722")
+	NorenClient := NorenApi.New("FA87226", "AlgoKaka@23", "aa4cff2b3742cc0eeeea60d51e311722")
 
 	fmt.Println("Client :- ", NorenClient)
 	clientTotpSecret := "U6CFCE65M63MLV655H25D2327HU36YYJ"
@@ -69,29 +69,29 @@ func main() {
 
 	// //Get Last Traded Price
 	//jData={"uid":"FA87226","actid":"FA87226","exch":"NSE","tsym":"HDFCBANK-EQ","qty":"1","prc":"1660.75","dscqty":"0","prd":"C","trantype":"B","prctyp":"LMT","ret":"DAY","ordersource":"WEB"}&jKey=eda03a4f0f1ad6937c9d5c208b40cef476c76ebcc3010409ef695049b994fd19
-	// orderParam := NorenApi.OrderParams{
-	// 	OrderSource:       "API",
-	// 	UserId:            session.UID,
-	// 	AccountId:         session.Actid,
-	// 	TransactionType:   "B",
-	// 	ProductType:       "C",
-	// 	Exchange:          "NSE",
-	// 	TradingSymbol:     "HDFCBANK-EQ",
-	// 	Quantity:          "50",
-	// 	PriceType:         "LMT",
-	// 	Price:             "1000",
-	// 	Retention:         "DAY",
-	// 	Remarks:           "Test order",
-	// 	DisclosedQuantity: "0",
-	// }
+	orderParam := NorenApi.OrderParams{
+		OrderSource:       "API",
+		UserId:            session.UID,
+		AccountId:         session.Actid,
+		TransactionType:   "B",
+		ProductType:       "C",
+		Exchange:          "NSE",
+		TradingSymbol:     "SBIN-EQ",
+		Quantity:          "50",
+		PriceType:         "LMT",
+		Price:             "1000",
+		Retention:         "DAY",
+		Remarks:           "Test order",
+		DisclosedQuantity: "0",
+	}
 
-	// ordResp, err := NorenClient.PlaceOrder(orderParam)
+	ordResp, err := NorenClient.PlaceOrder(orderParam)
 
-	// if err != nil {
-	// 	fmt.Println(err)
-	// }
+	if err != nil {
+		fmt.Println(err)
+	}
 
-	// fmt.Printf("Order resp : %v", ordResp)
+	fmt.Printf("Order resp : %v", ordResp)
 
 	// gttReqContext := NorenApi.GTTRequestContext{
 	// 	Exchange:        "NFO",

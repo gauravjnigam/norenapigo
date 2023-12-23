@@ -7,7 +7,7 @@ import (
 	"github.com/golang/glog"
 )
 
-func isHoliday(today string) bool {
+func isHoliday(today time.Time) bool {
 	holidays := []string{
 		"1/26/2023",
 		"3/7/2023",
@@ -35,13 +35,13 @@ func isHoliday(today string) bool {
 		}
 		datesList = append(datesList, hDate)
 	}
-	todayDate, err := time.Parse("1/2/2006", today)
-	if err != nil {
-		fmt.Println("Invalid today format:", today)
-		return false
-	}
+	// todayDate, err := time.Parse("1/2/2006", today)
+	// if err != nil {
+	// 	fmt.Println("Invalid today format:", today)
+	// 	return false
+	// }
 	for _, date := range datesList {
-		if todayDate.Equal(date) {
+		if today.Equal(date) {
 			return true
 		}
 	}
@@ -51,7 +51,7 @@ func isHoliday(today string) bool {
 func weeklyExpiry(dateInput time.Time) time.Time {
 	weekday := int(dateInput.Weekday())
 	expiry1 := dateInput.AddDate(0, 0, (10-weekday)%7)
-	for isHoliday("") {
+	for isHoliday(expiry1) {
 		expiry1 = expiry1.AddDate(0, 0, -1)
 	}
 	return expiry1
@@ -65,7 +65,7 @@ func monthlyExpiry(dateInput time.Time) time.Time {
 	for expiry.Weekday() != time.Thursday {
 		expiry = expiry.AddDate(0, 0, -1)
 	}
-	for isHoliday("") {
+	for isHoliday(expiry) {
 		expiry = expiry.AddDate(0, 0, -1)
 	}
 
