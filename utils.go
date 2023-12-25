@@ -37,6 +37,7 @@ const (
 	URISecurityInfo       string = "GetSecurityInfo"
 	URIOrderMargin        string = "GetOrderMargin"
 	URIPlaceGTTOrder      string = "PlaceGTTOrder"
+	URIPlaceOCOOrder      string = "PlaceOCOOrder"
 	URICancelGTTOrder     string = "CancelGTTOrder"
 	URIGetPendingGTTOrder string = "GetPendingGTTOrder"
 	URIGetEnabledGTTs     string = "GetEnabledGTTs"

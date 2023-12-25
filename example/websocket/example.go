@@ -62,7 +62,7 @@ func onNoReconnect(attempt int) {
 func main() {
 
 	// Create New Angel Broking Client
-	NorenClient := NorenApi.New("FA87226", "AlgoDada@23", "aa4cff2b3742cc0eeeea60d51e311722")
+	NorenClient := NorenApi.New("<userid>", "<password>", "<api-key>")
 
 	// fmt.Println("Client :- ", NorenClient)
 	clientTotpSecret := "U6CFCE65M63MLV655H25D2327HU36YYJ"
