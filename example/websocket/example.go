@@ -65,7 +65,7 @@ func main() {
 	NorenClient := NorenApi.New("<userid>", "<password>", "<api-key>")
 
 	// fmt.Println("Client :- ", NorenClient)
-	clientTotpSecret := "U6CFCE65M63MLV655H25D2327HU36YYJ"
+	clientTotpSecret := "<otp secret>"
 	secret, err := gotp.DecodeBase32(clientTotpSecret)
 	if err != nil {
 		panic(err)

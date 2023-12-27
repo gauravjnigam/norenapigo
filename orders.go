@@ -478,7 +478,7 @@ func (c *Client) PlaceGTT_OCO_LMT_order(gttOrdParam GTTOrderParams) (GTTOrderRes
 	order_params["actid"] = c.clientCode
 	order_params["uid"] = c.clientCode
 	order_params["ordersource"] = "API"
-	order_params["qty"] = string(gttOrdParam.Quantity)
+	order_params["qty"] = gttOrdParam.Quantity
 	order_params["prc"] = fmt.Sprintf("%f", gttOrdParam.Price)
 
 	xVar := map[string]string{"d": fmt.Sprintf("%f", gttOrdParam.AlertPriceAbove), "var_name": "x"}
@@ -517,7 +517,7 @@ func (c *Client) PlaceGTT_OCO_MKT_order(gttOrdParam GTTOrderParams) (GTTOrderRes
 	order_params["actid"] = c.clientCode
 	order_params["uid"] = c.clientCode
 	order_params["ordersource"] = "API"
-	order_params["qty"] = string(gttOrdParam.Quantity)
+	order_params["qty"] = gttOrdParam.Quantity
 	order_params["prc"] = fmt.Sprintf("%f", gttOrdParam.Price)
 
 	xVar := map[string]string{"d": fmt.Sprintf("%f", gttOrdParam.AlertPriceAbove), "var_name": "x"}

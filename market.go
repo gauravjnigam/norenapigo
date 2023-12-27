@@ -189,7 +189,7 @@ func (c *Client) getSearchStringForExpiry(baseSearch string, instrumentCode stri
 	ltp, err := c.GetLTP(LTPParams{Exchange: "NSE", Token: instrumentCode})
 
 	if err != nil {
-		fmt.Errorf("Error while fetching LTP to calculate expiry", err)
+		fmt.Errorf("Error while fetching LTP to calculate expiry - %v", err)
 		return "--INVALID--"
 	}
 
