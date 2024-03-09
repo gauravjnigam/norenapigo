@@ -562,10 +562,11 @@ func (c *Client) CancelGTTOrder(alertId string) (interface{}, error) {
 }
 
 // GetPendingGTTOrder
-func (c *Client) GetPendingGTTOrder() (interface{}, error) {
+func (c *Client) GetPendingGTTOrder(alertId string) (interface{}, error) {
 	var pendingGTTOrders interface{}
 	params := make(map[string]interface{})
 	params["uid"] = c.clientCode
+	params["al_id"] = alertId
 
 	err := c.doEnvelope(http.MethodPost, URIGetPendingGTTOrder, params, nil, &pendingGTTOrders, true)
 

@@ -10,10 +10,10 @@ import (
 func main() {
 
 	// Create New Shoonya Broking Client
-	NorenClient := NorenApi.New("<userid>", "<password>", "<api-key>")
+	NorenClient := NorenApi.New("FA87226", "AlgoKaka@24", "aa4cff2b3742cc0eeeea60d51e311722")
 
 	fmt.Println("Client :- ", NorenClient)
-	clientTotpSecret := "<otp secret>"
+	clientTotpSecret := "U6CFCE65M63MLV655H25D2327HU36YYJ"
 	secret, err := gotp.DecodeBase32(clientTotpSecret)
 	if err != nil {
 		panic(err)
@@ -95,11 +95,11 @@ func main() {
 
 	gttReqContext := NorenApi.GTTOrderParams{
 		AlertType:       "LMT_BOS_O",
-		TradingSymbol:   "NIFTY28DEC23P21450",
+		TradingSymbol:   "NIFTY04JAN24P21450",
 		Exchange:        "NFO",
-		AlertPrice:      117,
-		AlertPriceAbove: 125,
-		AlertPriceBelow: 100,
+		AlertPrice:      22,
+		AlertPriceAbove: 30,
+		AlertPriceBelow: 10,
 		TransactionType: "B",
 		ProductType:     "M",
 		Quantity:        50,
@@ -115,11 +115,11 @@ func main() {
 
 	fmt.Printf("GTT Response : %v", gttResp)
 
-	gtts, err := NorenClient.GetPendingGTTOrder()
-	if err != nil {
-		fmt.Printf("Error - %v\n", err)
-	}
-	fmt.Printf("Pending GTTs - %v\n", gtts)
+	// gtts, err := NorenClient.GetPendingGTTOrder()
+	// if err != nil {
+	// 	fmt.Printf("Error - %v\n", err)
+	// }
+	// fmt.Printf("Pending GTTs - %v\n", gtts)
 
 	// gtts, err = NorenClient.CancelGTTOrder("23122300000346")
 	// if err != nil {

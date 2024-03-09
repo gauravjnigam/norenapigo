@@ -10,6 +10,8 @@ import (
 	"io/ioutil"
 	"math"
 	"net/url"
+	"reflect"
+	"strings"
 	"sync"
 	"time"
 
@@ -26,7 +28,7 @@ type SocketClient struct {
 	reconnectMaxDelay   time.Duration
 	connectTimeout      time.Duration
 	reconnectAttempt    int
-	instrument          string
+	instrument          interface{}
 	suserToken          string
 	userId              string
 	cancel              context.CancelFunc
@@ -64,7 +66,7 @@ var (
 )
 
 // New creates a new ticker instance.
-func New(userId string, suserToken string, instrument string) *SocketClient {
+func New(userId string, suserToken string, instrument interface{}) *SocketClient {
 	sc := &SocketClient{
 		userId:              userId,
 		suserToken:          suserToken,
@@ -76,7 +78,7 @@ func New(userId string, suserToken string, instrument string) *SocketClient {
 		instrument:          instrument,
 	}
 
-	// fmt.Printf("Socket client url - %v\n", tickerURL)
+	fmt.Printf("Socket client url - %v\n", tickerURL)
 
 	return sc
 }
@@ -422,15 +424,21 @@ type orderInput struct {
 // Subscribe subscribes tick for the given list of tokens.
 func (s *SocketClient) Subscribe() error {
 	fmt.Println("Subscribing... ")
+	var insVal string
+	if reflect.TypeOf(s.instrument).Kind() == reflect.Slice {
+		insVal = strings.Join(s.instrument.([]string), "#") // Ensure instrument is a string slice
+	} else {
+		insVal = s.instrument.(string) // Ensure instrument is a string
+	}
 
 	out, err := json.Marshal(tickerInput{
 		Type: "t",
-		Val:  s.instrument,
+		Val:  insVal,
 	})
 	if err != nil {
 		return err
 	}
-
+	// fmt.Printf("Payload - %v", out)
 	err = s.Conn.WriteMessage(websocket.TextMessage, out)
 
 	if err != nil {

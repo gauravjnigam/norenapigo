@@ -35,7 +35,7 @@ func onClose(code int, reason string) {
 // Triggered when connection is established and ready to send and accept data
 func onConnect() {
 	fmt.Println("Connected")
-	// fmt.Printf("SocketClient : %v\n", socketClient)
+	fmt.Printf("SocketClient : %v\n", socketClient)
 	err := socketClient.Subscribe()
 	if err != nil {
 		fmt.Println("err: ", err)
@@ -62,10 +62,10 @@ func onNoReconnect(attempt int) {
 func main() {
 
 	// Create New Angel Broking Client
-	NorenClient := NorenApi.New("<userid>", "<password>", "<api-key>")
+	NorenClient := NorenApi.New("FA87226", "AlgoKaka@24", "aa4cff2b3742cc0eeeea60d51e311722")
 
-	// fmt.Println("Client :- ", NorenClient)
-	clientTotpSecret := "<otp secret>"
+	fmt.Println("Client :- ", NorenClient)
+	clientTotpSecret := "U6CFCE65M63MLV655H25D2327HU36YYJ"
 	secret, err := gotp.DecodeBase32(clientTotpSecret)
 	if err != nil {
 		panic(err)
@@ -92,7 +92,10 @@ func main() {
 
 	// time.Sleep(1 * time.Second)
 	// New Websocket Client
-	socketClient = websocket.New(session.UID, session.Susertoken, "NSE|26000")
+	instruments := make([]string, 0)
+	// instruments = append(instruments, "NSE|26000")
+	instruments = append(instruments, "NFO|276755")
+	socketClient = websocket.New(session.UID, session.Susertoken, instruments)
 
 	// Assign callbacks
 	socketClient.OnError(onError)

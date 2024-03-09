@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"crypto/tls"
 	"encoding/json"
-	"fmt"
 	"io"
 	"io/ioutil"
 	"log"
@@ -141,7 +140,7 @@ func (h *httpClient) DoEnvelope(method, url string, params map[string]interface{
 		return err
 	}
 
-	fmt.Printf("\nResponse : %v - %v\n", resp.Response.Status, resp.Response.Request.URL)
+	// fmt.Printf("\nResponse : %v - %v\n", resp.Response.Status, resp.Response.Request.URL)
 
 	// fmt.Printf("\nResponse : %v \n", string(resp.Body))
 

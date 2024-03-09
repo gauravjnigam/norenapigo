@@ -196,16 +196,16 @@ func (c *Client) getSearchStringForExpiry(baseSearch string, instrumentCode stri
 	// atm price for instument i.e. Nifty, banknifty, finnifty
 	ltpFlt, _ := strconv.ParseFloat(ltp.C, 64)
 	atmPrice := getATMStrike(ltpFlt, ltp.Tsym)
-	fmt.Printf("%s LTP : %v", ltp.Tsym, atmPrice)
+	// fmt.Printf("%s LTP : %v", ltp.Tsym, atmPrice)
 	atmPriceStr := fmt.Sprintf("%d", atmPrice)
 	t := time.Now()
 	monthYear := fmt.Sprintf("%s%d", t.Month().String()[:3], t.Year()%1e2)
-	fmt.Printf("Current Month and year : %s\n", monthYear)
+	// fmt.Printf("Current Month and year : %s\n", monthYear)
 
 	if optionOrFuture == "OPTION" {
 		baseSearch = baseSearch + " " + monthYear + " C" + " " + atmPriceStr
 	}
-	fmt.Printf("Search string for expiry :\n" + baseSearch)
+	// fmt.Printf("Search string for expiry :\n" + baseSearch)
 	return baseSearch
 }
 
@@ -213,12 +213,12 @@ func (c *Client) GetExpiryDate(expiryType string, expiryInstance int) (ExpiryDat
 	var expiryDate time.Time
 	var expDateResp ExpiryDateResponse
 	dayVal := time.Now()
-	fmt.Printf("\nExpiry request for %s - %d, for day: %s\n", expiryType, expiryInstance, dayVal.Format("2006-01-02"))
+	// fmt.Printf("\nExpiry request for %s - %d, for day: %s\n", expiryType, expiryInstance, dayVal.Format("2006-01-02"))
 
 	if expiryType == "WEEKLY" {
-		fmt.Printf("Weekly\n")
+		// fmt.Printf("Weekly\n")
 		dayVal = dayVal.Add(time.Duration(7*expiryInstance) * 24 * time.Hour)
-		fmt.Printf("dayVal - %v\n", dayVal)
+		// fmt.Printf("dayVal - %v\n", dayVal)
 		wexp := weeklyExpiry(dayVal)
 		expiryDate = wexp
 	}
@@ -231,7 +231,7 @@ func (c *Client) GetExpiryDate(expiryType string, expiryInstance int) (ExpiryDat
 
 	if !expiryDate.IsZero() {
 		expDateStr := expiryDate.Format("02Jan06")
-		fmt.Printf("Expiry date = %s\n", expDateStr)
+		// fmt.Printf("Expiry date = %s\n", expDateStr)
 		expDateResp.ExpiryDate = expDateStr
 	}
 
