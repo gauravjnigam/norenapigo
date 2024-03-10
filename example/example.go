@@ -10,10 +10,10 @@ import (
 func main() {
 
 	// Create New Shoonya Broking Client
-	NorenClient := NorenApi.New("<userid>", "<password>", "<api-key>")
+	NorenClient := NorenApi.New("FA87226", "AlgoKaka@24", "aa4cff2b3742cc0eeeea60d51e311722")
 
 	fmt.Println("Client :- ", NorenClient)
-	clientTotpSecret := "<otp secret>"
+	clientTotpSecret := "U6CFCE65M63MLV655H25D2327HU36YYJ"
 	secret, err := gotp.DecodeBase32(clientTotpSecret)
 	if err != nil {
 		panic(err)
@@ -93,23 +93,17 @@ func main() {
 	}
 	fmt.Printf("Holdings resp : %v", holdings)
 
-	searchScriptRes, err1 := NorenClient.Searchscrip("NSE", "FIN NIFTY")
+	searchScriptRes, err1 := NorenClient.Searchscrip("NFO", "NIFTY14MAR24C22450")
 	if err1 != nil {
 		fmt.Println(err)
 	}
 	fmt.Printf("Searched text resp : %v\n", searchScriptRes)
 
-	// tsym := "HDFCBANK-EQ"
-	// ltpResp, err1 := NorenClient.GetLatestPrice(tsym, "NSE")
+	// tsym := "nifty07MAR24P22000"
+	// ltpResp, err1 := NorenClient.GetLatestPrice(tsym, "NFO")
 	// if err1 != nil {
 	// 	fmt.Println(err)
 	// }
-	// fmt.Printf("Latest price for %s : %v", tsym, ltpResp.C)
-
-	expResp, err1 := NorenClient.GetTradingSymbol("NFO", "nifty DEC 21450 PE")
-	if err1 != nil {
-		fmt.Println(err)
-	}
-	fmt.Printf("Expiry date : %v", expResp)
+	// fmt.Printf("Latest price for %s : %v", tsym, ltpResp.Token)
 
 }

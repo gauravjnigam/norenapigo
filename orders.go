@@ -478,7 +478,7 @@ func (c *Client) PlaceGTT_OCO_LMT_order(gttOrdParam GTTOrderParams) (GTTOrderRes
 	order_params["actid"] = c.clientCode
 	order_params["uid"] = c.clientCode
 	order_params["ordersource"] = "API"
-	order_params["qty"] = string(gttOrdParam.Quantity)
+	order_params["qty"] = gttOrdParam.Quantity
 	order_params["prc"] = fmt.Sprintf("%f", gttOrdParam.Price)
 
 	xVar := map[string]string{"d": fmt.Sprintf("%f", gttOrdParam.AlertPriceAbove), "var_name": "x"}
@@ -517,7 +517,7 @@ func (c *Client) PlaceGTT_OCO_MKT_order(gttOrdParam GTTOrderParams) (GTTOrderRes
 	order_params["actid"] = c.clientCode
 	order_params["uid"] = c.clientCode
 	order_params["ordersource"] = "API"
-	order_params["qty"] = string(gttOrdParam.Quantity)
+	order_params["qty"] = gttOrdParam.Quantity
 	order_params["prc"] = fmt.Sprintf("%f", gttOrdParam.Price)
 
 	xVar := map[string]string{"d": fmt.Sprintf("%f", gttOrdParam.AlertPriceAbove), "var_name": "x"}
@@ -562,10 +562,11 @@ func (c *Client) CancelGTTOrder(alertId string) (interface{}, error) {
 }
 
 // GetPendingGTTOrder
-func (c *Client) GetPendingGTTOrder() (interface{}, error) {
+func (c *Client) GetPendingGTTOrder(alertId string) (interface{}, error) {
 	var pendingGTTOrders interface{}
 	params := make(map[string]interface{})
 	params["uid"] = c.clientCode
+	params["al_id"] = alertId
 
 	err := c.doEnvelope(http.MethodPost, URIGetPendingGTTOrder, params, nil, &pendingGTTOrders, true)
 

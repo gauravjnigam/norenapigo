@@ -113,7 +113,7 @@ var MockResponders = [][]string{
 	[]string{http.MethodGet, URIUserProfile, "profile.json"},
 	[]string{http.MethodGet, URIGetPositions, "positions.json"},
 	[]string{http.MethodGet, URIGetHoldings, "holdings.json"},
-	[]string{http.MethodGet, URIRMS, "rms.json"},
+	// []string{http.MethodGet, URIRMS, "rms.json"},
 	[]string{http.MethodGet, URIGetTradeBook, "trades.json"},
 	[]string{http.MethodGet, URIGetOrderBook, "orders.json"},
 
@@ -126,7 +126,7 @@ var MockResponders = [][]string{
 	[]string{http.MethodPost, URIUserSessionRenew, "session.json"},
 	[]string{http.MethodPost, URIUserProfile, "profile.json"},
 	[]string{http.MethodPost, URILogout, "logout.json"},
-	[]string{http.MethodPost, URIConvertPosition, "position_conversion.json"},
+	// []string{http.MethodPost, URIConvertPosition, "position_conversion.json"},
 }
 
 // Test only function prefix with this

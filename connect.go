@@ -2,7 +2,6 @@ package norenapigo
 
 import (
 	"crypto/tls"
-	"fmt"
 	_ "fmt"
 	"net/http"
 	"time"
@@ -23,7 +22,6 @@ const (
 	name           string        = "shoonya-go"
 	requestTimeout time.Duration = 7000 * time.Millisecond
 	baseURI        string        = "https://api.shoonya.com/NorenWClientTP/"
-	// websockerURI string = "wss://api.shoonya.com/NorenWSTP/"
 )
 
 // New creates a new noren API client.
@@ -82,18 +80,12 @@ func (c *Client) doEnvelope(method, uri string, params map[string]interface{}, h
 		headers = map[string][]string{}
 	}
 
-	// localIp, publicIp, mac, err := getIpAndMac()
-
-	// if err != nil {
-	// 	return err
-	// }
-
 	// Add Kite Connect version to header
 	headers.Add("Content-Type", "application/json")
 
 	headers.Add("charset", "utf-8")
 
-	fmt.Printf("\n--> Method : %s \nURL : %s \nParam : %v\n Header : %v\n, V: %v\n AccessToken: %v\n", method, c.baseURI+uri, params, headers, v, c.accessToken)
+	// fmt.Printf("\n--> Method : %s \nURL : %s \nParam : %v\n Header : %v\n, V: %v\n AccessToken: %v\n", method, c.baseURI+uri, params, headers, v, c.accessToken)
 
 	return c.httpClient.DoEnvelope(method, c.baseURI+uri, params, headers, c.accessToken, v)
 }
