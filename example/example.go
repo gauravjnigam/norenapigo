@@ -93,17 +93,17 @@ func main() {
 	}
 	fmt.Printf("Holdings resp : %v", holdings)
 
-	searchScriptRes, err1 := NorenClient.Searchscrip("NFO", "NIFTY 07MAR24 22000")
+	searchScriptRes, err1 := NorenClient.Searchscrip("NFO", "NIFTY14MAR24C22450")
 	if err1 != nil {
 		fmt.Println(err)
 	}
 	fmt.Printf("Searched text resp : %v\n", searchScriptRes)
 
-	tsym := "nifty07MAR24P22000"
-	ltpResp, err1 := NorenClient.GetLatestPrice(tsym, "NFO")
-	if err1 != nil {
-		fmt.Println(err)
-	}
-	fmt.Printf("Latest price for %s : %v", tsym, ltpResp.Token)
+	// tsym := "nifty07MAR24P22000"
+	// ltpResp, err1 := NorenClient.GetLatestPrice(tsym, "NFO")
+	// if err1 != nil {
+	// 	fmt.Println(err)
+	// }
+	// fmt.Printf("Latest price for %s : %v", tsym, ltpResp.Token)
 
 }

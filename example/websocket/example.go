@@ -94,7 +94,10 @@ func main() {
 	// New Websocket Client
 	instruments := make([]string, 0)
 	// instruments = append(instruments, "NSE|26000")
-	instruments = append(instruments, "NFO|276755")
+	// instruments = append(instruments, "NSE|26009")
+	instruments = append(instruments, "NFO|43914")
+	instruments = append(instruments, "NFO|276756")
+	// NFO|276755 NFO|276756
 	socketClient = websocket.New(session.UID, session.Susertoken, instruments)
 
 	// Assign callbacks

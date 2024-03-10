@@ -135,6 +135,7 @@ func (c *Client) GetLatestPrice(tradingSymbol string, exchange string) (LTPRespo
 	if err != nil {
 		fmt.Printf("Error while searching - %v", err)
 	}
+	fmt.Printf("Search resp : %v", searchResp)
 	var token string
 	if searchResp.Stat == "Ok" && len(searchResp.Values) > 0 {
 		token = searchResp.Values[0].Token
@@ -145,7 +146,7 @@ func (c *Client) GetLatestPrice(tradingSymbol string, exchange string) (LTPRespo
 	params["token"] = token
 
 	err1 := c.doEnvelope(http.MethodPost, URILTP, params, nil, &ltp, true)
-
+	fmt.Printf("LTP resp : %v", ltp)
 	return ltp, err1
 }
 
