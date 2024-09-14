@@ -2,6 +2,7 @@ package norenapigo
 
 import (
 	"crypto/tls"
+	"fmt"
 	_ "fmt"
 	"net/http"
 	"time"
@@ -14,6 +15,7 @@ type Client struct {
 	accessToken string
 	debug       bool
 	baseURI     string
+	eodBaseURI  string
 	apiKey      string
 	httpClient  HTTPClient
 }
@@ -22,6 +24,7 @@ const (
 	name           string        = "shoonya-go"
 	requestTimeout time.Duration = 7000 * time.Millisecond
 	baseURI        string        = "https://api.shoonya.com/NorenWClientTP/"
+	eodBaseURI     string        = "https://api.shoonya.com/chartApi/getdata/"
 )
 
 // New creates a new noren API client.
@@ -31,6 +34,7 @@ func New(clientCode string, password string, apiKey string) *Client {
 		password:   password,
 		apiKey:     apiKey,
 		baseURI:    baseURI,
+		eodBaseURI: eodBaseURI,
 	}
 
 	// Create a default http handler with default timeout.
@@ -88,4 +92,24 @@ func (c *Client) doEnvelope(method, uri string, params map[string]interface{}, h
 	// fmt.Printf("\n--> Method : %s \nURL : %s \nParam : %v\n Header : %v\n, V: %v\n AccessToken: %v\n", method, c.baseURI+uri, params, headers, v, c.accessToken)
 
 	return c.httpClient.DoEnvelope(method, c.baseURI+uri, params, headers, c.accessToken, v)
+}
+
+func (c *Client) doEodEnvelope(method, uri string, params map[string]interface{}, headers http.Header, v interface{}, authorization ...bool) error {
+	if params == nil {
+		params = map[string]interface{}{}
+	}
+
+	// Send custom headers set
+	if headers == nil {
+		headers = map[string][]string{}
+	}
+
+	// Add Kite Connect version to header
+	headers.Add("Content-Type", "application/json")
+
+	headers.Add("charset", "utf-8")
+
+	fmt.Printf("\n--> Method : %s \nURL : %s \nParam : %v\n Header : %v\n, V: %v\n AccessToken: %v\n", method, c.eodBaseURI+uri, params, headers, v, c.accessToken)
+
+	return c.httpClient.DoEnvelope(method, c.eodBaseURI+uri, params, headers, c.accessToken, v)
 }

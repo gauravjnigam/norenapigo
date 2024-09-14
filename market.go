@@ -70,6 +70,12 @@ type ExpiryDateResponse struct {
 	ExpiryDate string `json:"expiryDate"`
 }
 
+type DailyTSParam struct {
+	Symbol string `json:"sym"`
+	St     string `json:"from"`
+	Et     string `json:"to"`
+}
+
 type TSPriceParam struct {
 	Exch  string `json:"exch"`
 	Token string `json:"token"`
@@ -107,6 +113,28 @@ func (c *Client) GetTimePriceSeries(exchange string, token string, startTime str
 	// fmt.Printf("Req Param : \n%v\n", params)
 	params["uid"] = c.clientCode
 	err := c.doEnvelope(http.MethodPost, URITPSeries, params, nil, &candle, true)
+	tsResponse := TSPResponse{Candles: candle}
+	return tsResponse, err
+}
+
+// Get historial timePrice series
+func (c *Client) GetDailyTimeSeries(exchange string, symbol string, startTime string, endTime string) (TSPResponse, error) {
+	// fmt.Printf("Starttime: %s, EndTime: %s\n", startTime, endTime)
+	// start, _ := GetDate(startTime)
+	// end, _ := GetDate(endTime)
+	end, start := GetTodayAndLastWeekEpoch()
+	sym := fmt.Sprintf("%s:%s", exchange, symbol)
+	fmt.Printf("Sym: %s, StartDate: %d, EndDate: %d\n", sym, start, end)
+	tsPriceParam := DailyTSParam{Symbol: sym, St: fmt.Sprintf("%d", start), Et: fmt.Sprintf("%d", end)}
+	var candle []Candle
+	// fmt.Printf("Daily TSP Param: \n%v\n", tsPriceParam)
+	params := structToMap(tsPriceParam, "json")
+	fmt.Printf("Req Param : \n%v\n", params)
+	params["uid"] = c.clientCode
+	err := c.doEodEnvelope(http.MethodGet, URIEODTPSeries, params, nil, &candle, true)
+	if err != nil {
+		fmt.Errorf("Error while fetching EOD chart : %v", err.Error())
+	}
 	tsResponse := TSPResponse{Candles: candle}
 	return tsResponse, err
 }
